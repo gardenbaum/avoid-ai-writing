@@ -275,13 +275,14 @@ Pattern research informed by:
 - [brandonwise/humanizer](https://github.com/brandonwise/humanizer) — tiered vocabulary system, statistical analysis research (burstiness, sentence length variation, trigram repetition), and rewrite philosophy
 - [OpenClaw](https://github.com/openclaw/openclaw) humanizer skill ecosystem — community patterns and vocabulary research
 
-A community built a Solana token (`$avoid`) and a [token-burn web app](https://avoid-ai-writing-app.vercel.app) around this project in 2026; both are now in maintenance mode.
-
 Authored by [Conor Bronsdon](https://github.com/conorbronsdon) · [LinkedIn](https://www.linkedin.com/in/conorbronsdon/) · [Chain of Thought podcast](https://chainofthought.show)
 
 ## Community / Multilingual
 
+Things the community has built around this skill:
+
 - **[avoid-ai-writing-multilingual](https://github.com/jurigis/avoid-ai-writing-multilingual)** by [Jürgen Kraus](https://github.com/jurigis) — German (`SKILL-DE.md`) and Romanian (`SKILL-RO.md`) adaptations, grounded in native-language research rather than translated from English. French and Spanish planned.
+- **[$avoid token + burn web app](https://avoid-ai-writing-app.vercel.app)** — a community-built Solana token (`$avoid`) and token-burn web app around this project (2026), now in maintenance mode.
 
 Built something on top of this skill? Open an issue — happy to link it here.
 
