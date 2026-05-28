@@ -288,6 +288,8 @@ The skill ships a deterministic, zero-dependency detection engine in
 describe, as runnable code. It works in Node (`>=18`) and the browser with no
 build step.
 
+It's also the single source of the numeric score: the skill itself (and `detect` mode) report *which* patterns are present and how severe (P0/P1/P2), and the engine is what turns those into one computed 0–100 `score`. There's deliberately no second, prose-estimated score in `SKILL.md` — one scorer, not two.
+
 ```bash
 npm test          # run the detector's fixtures (no deps to install)
 ```
