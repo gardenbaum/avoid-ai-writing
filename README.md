@@ -141,6 +141,8 @@ Trigger detect mode with: "detect," "flag only," "audit only," "just flag," "sca
 
 ## 42 Patterns Detected
 
+> These 42 are the human-facing prose rules. The [detector engine](./detector/) implements **43 `type` categories** — a different count, because it splits the vocabulary tiers and adds stylometric/fingerprint signals (punctuation distribution, function-word entropy, bypass-trick detection) that work as math over a document rather than as a rule you'd look up. The two are mapped in [`detector/CATEGORIES.md`](./detector/CATEGORIES.md); don't "fix" one count to match the other.
+
 ### Content Patterns
 
 | # | Pattern | Before | After |
@@ -244,6 +246,26 @@ Added in v3.4 to catch LLM output that sidesteps the vocabulary tables by substi
 **What the skill caught:** chatbot artifacts (Certainly!, Feel free to reach out), 3 em dashes, promotional language (vibrant, nestled, thriving), significance inflation (watershed moment), copula avoidance (serves as, featuring, boasting, presenting), 10 word replacements (landscape, robust, seamless, paradigm, streamline, empower, foster, utilize, ascertain, endeavor), synonym cycling (developers/practitioners/builders/engineers), negative parallelism (It's not just X, it's Y), notability name-dropping (Sequoia, a16z, YC, Index stacked for credibility), vague attributions (Experts believe, Studies show), filler phrases (In order to, Moreover), inline-header list with emoji, superficial -ing analysis (symbolizing... reflecting... highlighting...), formulaic challenges (Despite challenges... continues to thrive), generic conclusion (the future looks bright, only time will tell), false range implied in the adoption bullet.
 
 That's 35+ AI tells.
+
+## Run the detector
+
+The skill ships a deterministic, zero-dependency detection engine in
+[`detector/`](./detector/) — the same 43-category engine the rules above
+describe, as runnable code. It works in Node (`>=18`) and the browser with no
+build step.
+
+```bash
+npm test          # run the detector's fixtures (no deps to install)
+```
+
+```js
+const AIDetector = require("./detector/patterns.js");
+const { score, label, issues } = AIDetector.analyzeText("Your text here…");
+```
+
+See [`detector/README.md`](./detector/README.md) for the full `analyzeText` API
+and [`detector/CATEGORIES.md`](./detector/CATEGORIES.md) for the rule ↔ category
+map that keeps `SKILL.md` and the engine in sync.
 
 ## Credits
 
