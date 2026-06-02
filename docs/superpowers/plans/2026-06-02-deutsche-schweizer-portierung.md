@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Unter *ultracode* wird der Plan über die **Workflow**-Orchestrierung umgesetzt (parallele Agents pro Task-Gruppe, adversarische Verifikation der recherchierten Tells).
 
-**Goal:** Das gesamte Repository von Englisch auf Deutsch in Schweizer Schreibweise (kein ß) umstellen — Skill, Detector-Engine, Tests, Doku, CI — gegründet auf recherchierten deutschen LLM-Tells, nicht auf Übersetzung.
+**Goal:** Das gesamte Repository von Englisch auf Deutsch in Schweizer Schreibweise (kein Eszett) umstellen — Skill, Detector-Engine, Tests, Doku, CI — gegründet auf recherchierten deutschen LLM-Tells, nicht auf Übersetzung.
 
 **Architecture:** Struktur-erhaltender Neuaufbau. Dateilayout, Scoring-Modell, Kategorie-Framework und CI bleiben. Kanonische deutsche Vokabel-/Tell-Listen werden einmal festgelegt (Task 1) und von SKILL.md (Tabellen) wie Detector (Objekte) geteilt. SKILL.md ist Source of Truth; der Detector spiegelt sie; Doku referenziert beide; `categories.test.js` erzwingt den SKILL↔Engine-Vertrag maschinell.
 
@@ -14,7 +14,7 @@
 
 ## Konventionen (für ALLE Tasks)
 
-- **Kein ß.** Durchgängig `ss` — Prosa, Tabellen, Beispiele, Code-Kommentare, Test-Fixtures.
+- **Kein Eszett.** Durchgängig `ss` — Prosa, Tabellen, Beispiele, Code-Kommentare, Test-Fixtures.
 - **Anführungszeichen-Carve-out** (Detector + SKILL): `„ "` `‚ '` (U+201E/201C/201A/2018) **und** `« »` `‹ ›` (Guillemets) gelten als lokal-korrekt → nie flaggen.
 - **Gedankenstrich:** `–` (U+2013, gespacet) korrekt/nachsichtig; `—` (U+2014) ist das Tell.
 - **Stabil lassen:** `name: avoid-ai-writing`, alle Verzeichnispfade, Maschinen-Tokens (`--mode rewrite|detect|edit`, `contextMode general|technical`, Voice-/Context-Keys), die 43 Detector-`type`-Schlüssel (ausser dem Tausch `title-case-header` → `nominalstil`).
@@ -62,7 +62,7 @@ der gewöhnliche Prosa fälschlich flaggt, fliegt raus.
 **Files:**
 - Create: `docs/superpowers/research/de-tells.md`
 
-- [ ] **Step 1: Seed-Listen anlegen** (kein ß; jede Vokabel mit konkretem, schlichterem Ersatz)
+- [ ] **Step 1: Seed-Listen anlegen** (kein Eszett; jede Vokabel mit konkretem, schlichterem Ersatz)
 
 ```markdown
 ## Tier 1 — immer flaggen (Token, kleingeschrieben)
@@ -203,10 +203,10 @@ Alle Abschnitte übernehmen: „Was dieses Skill ist und was nicht" (inkl. der F
 
 Tier-1/2/3-Tabellen und Tier-3-Phrasen aus `de-tells.md`. `###`-Kategorien anpassen: `### Title-Case-Überschriften` **entfernen**; **neu** `### Nominalstil und Funktionsverbgefüge` und `### Passivlastigkeit` ergänzen. Em-Dash-Regel auf deutsche Typografie umschreiben (`—` = Tell, `–` korrekt). Anführungszeichen-Regel auf `„ "`/`« »`-Carve-out.
 
-- [ ] **Step 4: Verifizieren — kein ß, Titel vorhanden**
+- [ ] **Step 4: Verifizieren — kein Eszett, Titel vorhanden**
 
-Run: `! grep -n 'ß' SKILL.md && grep -c '^### ' SKILL.md && grep -n '## Was zu entfernen oder zu korrigieren ist' SKILL.md`
-Expected: kein ß-Treffer; Hauptkatalog-Titel vorhanden.
+Run: `! grep -nP '\x{00DF}' SKILL.md && grep -c '^### ' SKILL.md && grep -n '## Was zu entfernen oder zu korrigieren ist' SKILL.md`
+Expected: kein Eszett-Treffer; Hauptkatalog-Titel vorhanden.
 
 - [ ] **Step 5: Commit**
 
@@ -538,7 +538,7 @@ const NOMINALSTIL = [
 - [ ] **Step 1:** Alle deutschsprachigen `suggestion`/`text`-Strings der verbliebenen Meldungen übersetzen (uniformity, formatting, low-ttr, punct-distribution, cross-para-burstiness, normalization-flag, hashtag-stuff, tier3, tier3-phrase(-cluster), em-dash). Datei-Kopfkommentar deutsch.
 - [ ] **Step 2:** Roleplay-Verben um deutsche Formen ergänzen: `nickt|seufzt|lacht|lächelt|zuckt|grinst|flüstert|denkt|überlegt`.
 - [ ] **Step 3:** Stylometrie-Schwellen (TTR 0.4, CV 0.25/0.08, Entropie 0.82) als **dokumentierte Heuristik mit Kalibrierungs-Vorbehalt** kommentieren (englisch kalibriert; deutsche Flexion/Komposita verschieben die Verteilung; konservativ halten).
-- [ ] **Step 4: Verifizieren** — Run: `! grep -n 'ß' detector/patterns.js && node detector/patterns.test.js` → kein ß, Tests grün.
+- [ ] **Step 4: Verifizieren** — Run: `! grep -nP '\x{00DF}' detector/patterns.js && node detector/patterns.test.js` → kein Eszett, Tests grün.
 - [ ] **Step 5: Commit** — `git commit -am "feat(detector): Meldungen deutsch + Stylometrie-Vorbehalt dokumentiert"`
 
 ---
@@ -584,7 +584,7 @@ Der Vertrag prüft `TYPE_LABELS` ↔ `CATEGORIES.md` (jeder Typ dokumentiert, je
 Run: `awk '/^## Was zu entfernen oder zu korrigieren ist/{i=1;next} /^## /{i=0} i&&/^### /{if($0~/\(Struktur-Test\)/)next; if($0~/\(Inhalts-Test\)/)next; if($0~/^### Wann komplett neu schreiben/)next; n++} END{print n+0}' SKILL.md`
 Diese Zahl in das README-Bullet **`**NN Muster-Kategorien**`** schreiben (exakt diese Schreibweise, Guard in Task 12 hängt daran). Engine-`type`-Zahl bleibt 43; in der Notiz erwähnen.
 
-- [ ] **Step 3: Verifizieren** — `! grep -n 'ß' README.md && grep -n 'Muster-Kategorien' README.md`.
+- [ ] **Step 3: Verifizieren** — `! grep -nP '\x{00DF}' README.md && grep -n 'Muster-Kategorien' README.md`.
 - [ ] **Step 4: Commit** — `git commit -am "docs: README.md deutsch portiert"`
 
 ---
@@ -600,7 +600,7 @@ Diese Zahl in das README-Bullet **`**NN Muster-Kategorien**`** schreiben (exakt 
 ## [4.0.0] — 2026-06-02 — Deutsche/Schweizer Portierung
 
 ### Geändert
-- Gesamtes Repository auf Deutsch in Schweizer Schreibweise (kein ß) umgestellt.
+- Gesamtes Repository auf Deutsch in Schweizer Schreibweise (kein Eszett) umgestellt.
   Vokabular und Muster aus recherchierten deutschen LLM-Tells statt Übersetzung.
 - Detector: `em-dash` umgekehrt (— ist das Tell, – ist korrekt), `smart-punct-signature`
   ohne Oxford-Komma neu, `bullet-np`/Funktionswörter/`nominalstil` deutsch,
@@ -612,7 +612,7 @@ Diese Zahl in das README-Bullet **`**NN Muster-Kategorien**`** schreiben (exakt 
 - [ ] **Step 2: CONTRIBUTING.md + PR-Template** deutsch (Checklisten-Items übersetzen).
 - [ ] **Step 3: CLAUDE.md** deutsch **und faktisch korrigiert**: nicht „single file/no tests", sondern Detector-Engine + Tests + CI + Plugin + Cursor-Rule beschreiben; die ss-Regel und die deutschen Konventionen als verbindliche Projekt-Guidance aufnehmen.
 - [ ] **Step 4: cursor-rules/`.mdc`** — Body aus der **neuen** `SKILL.md` spiegeln; `.mdc`-Frontmatter (`description` deutsch inkl. Version v4.0.0, `globs` unverändert). `cursor-rules/README.md` deutsch.
-- [ ] **Step 5: Verifizieren** — `! grep -rn 'ß' CHANGELOG.md CONTRIBUTING.md CLAUDE.md cursor-rules/ .github/PULL_REQUEST_TEMPLATE.md`.
+- [ ] **Step 5: Verifizieren** — `! grep -rnP '\x{00DF}' CHANGELOG.md CONTRIBUTING.md CLAUDE.md cursor-rules/ .github/PULL_REQUEST_TEMPLATE.md`.
 - [ ] **Step 6: Commit** — `git commit -am "docs: CHANGELOG/CONTRIBUTING/CLAUDE/Cursor deutsch"`
 
 ---
@@ -647,10 +647,10 @@ Expected: `pattern count in sync: NN` (NN = Zahl aus Task 10 Step 2).
 Run: `npm test && bash scripts/check-pattern-count.sh && bash scripts/sync-plugin-skill.sh`
 Expected: alle PASS; keine Git-Diffs durch den Sync.
 
-- [ ] **Step 2: Kein ß im ganzen Repo**
+- [ ] **Step 2: Kein Eszett im ganzen Repo**
 
-Run: `git grep -n 'ß' -- ':!docs/superpowers/specs' ':!docs/superpowers/plans'`
-Expected: leer (Spec/Plan dürfen historisch ß enthalten — sie sind in Schweizer Schreibweise verfasst, daher ebenfalls leer; falls Treffer, korrigieren).
+Run: `git grep -nP '\x{00DF}' -- ':!docs/superpowers/specs' ':!docs/superpowers/plans'`
+Expected: leer (Spec/Plan sind ebenfalls in Schweizer Schreibweise verfasst (kein Eszett); falls doch ein Treffer, korrigieren).
 
 - [ ] **Step 3: Kein englischer Fliesstext (Stichprobe)**
 

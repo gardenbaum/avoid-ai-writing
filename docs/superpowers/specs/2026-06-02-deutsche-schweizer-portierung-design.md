@@ -45,7 +45,7 @@ keine Übersetzung.**
 | 1 | Sprachstrategie | **Komplett ersetzen** — reines Deutsch-/Schweiz-Repo |
 | 2 | Herleitung der Muster | **Deutsch recherchiert** — echte deutsche LLM-Tells, keine 1:1-Übersetzung |
 | 3 | Umfang | **Alles inkl. Detector-Engine** — `patterns.js`, Tests, CI |
-| 4 | Schweizer Norm | **Nur ß → ss** — sonst deutsche Standard-Orthografie |
+| 4 | Schweizer Norm | **Nur Eszett → ss** — sonst deutsche Standard-Orthografie |
 
 **Defaults für offene Punkte** (beim Review kippbar):
 
@@ -63,7 +63,7 @@ keine Übersetzung.**
 
 ### 3.1 Orthografie (Schweizer Schreibweise)
 
-- **Kein ß. Durchgängig `ss`** — in Prosa, Vokabeltabellen, Beispielen, **Code-
+- **Kein Eszett. Durchgängig `ss`** — in Prosa, Vokabeltabellen, Beispielen, **Code-
   Kommentaren und Test-Fixtures**. Beispiele: muss, dass, Strasse, grösser, heisst,
   weiss, ausserdem, abschliessend, gemäss, Schluss.
 - Sonst deutsche Standard-Orthografie (Duden), kein weiterer Helvetismus-Zwang.
@@ -260,7 +260,7 @@ werden).
 - [ ] `npm test` grün (Fixtures + `categories.test.js`-Vertrag).
 - [ ] `bash scripts/check-pattern-count.sh` grün (deutsche Anker, Count stimmt).
 - [ ] `bash scripts/sync-plugin-skill.sh` grün (Plugin-Kopie + Version synchron).
-- [ ] **Kein ß** im gesamten Repo (`grep -rn 'ß'` → leer).
+- [ ] **Kein Eszett** im gesamten Repo (`grep -rnP '\x{00DF}'` → leer).
 - [ ] Kein verbliebener englischer Fliesstext in den portierten Dateien (Stichprobe +
       gezielte Greps auf typische englische Funktionswörter in Prosa).
 - [ ] `name`, Pfade, Maschinen-Tokens unverändert; Version überall `4.0.0`.
