@@ -92,18 +92,6 @@
 - **Warum:** Metaphorisches „navigieren" (durch Herausforderungen/Komplexität) übersetzt „navigate" und häuft sich in LLM-Text. Wörtliches Navigieren (Schiff, Karte) bleibt unverdächtig.
 - **Mensch:** Der Kapitän navigierte das Kursschiff sicher durch den Nebel auf dem Genfersee.
 
-### fördern → unterstützen, anregen, helfen bei
-- **Warum:** Im LLM-Deutsch als Allzweck-Verb überdehnt („fördert Innovation", „fördert Zusammenarbeit"). Nur im Cluster mit anderen Tier-2-Floskeln ein Tell, weil das Wort im Förderwesen völlig normal ist.
-- **Mensch:** Der Kanton fördert den Bau von Photovoltaikanlagen mit einem Beitrag.
-
-### stärken → verbessern, ausbauen, sicherer machen
-- **Warum:** Kalkiert „bolster / strengthen" als vages Verbesserungsverb. Im Cluster mit fördern/ermöglichen/optimieren ein Muster; allein zu alltäglich zum Flaggen.
-- **Mensch:** Nach dem Bandriss machte sie Übungen, um das Knie wieder zu stärken.
-
-### ermöglichen → lassen, erlauben, möglich machen; oder Aktivsatz
-- **Warum:** LLM-Lieblingsverb für Nominal-/Passivkonstruktionen („ermöglicht es, … zu"). Erst die Häufung im Cluster ist ein Tell.
-- **Mensch:** Das Stipendium ermöglichte ihm das Studium an der ETH.
-
 ### optimieren → verbessern, beschleunigen, einfacher machen
 - **Warum:** Recherche nennt „optimiert" als ChatGPT-Buzzword. Im Cluster mit Tier-2-Vokabular ein Muster; im Ingenieur-/Mathekontext (Optimierungsproblem) legitim.
 - **Mensch:** Der Velomechaniker optimierte die Schaltung, bis sie sauber durchschaltete.
@@ -136,25 +124,13 @@
 - **Warum:** Kalkiert „burgeoning / nascent". LLM-Attribut für „junge" Märkte/Trends; im echten Gebrauch selten und bildhaft anders besetzt.
 - **Mensch:** Im März sah man im Garten schon das erste aufkeimende Grün.
 
-### entscheidend → wichtig, zentral; oder sagen, wofür es entscheidet
-- **Warum:** Recherche nennt „Es ist entscheidend" als ChatGPT-Muster. Als pauschales Verstärkungswort überdehnt; im Cluster ein Tell, einzeln ganz normal.
-- **Mensch:** Das entscheidende Tor fiel erst in der Nachspielzeit.
-
 ---
 
 ## Tier 3 – nur bei Dichte
 
-### bedeutend → konkret werden: Zahl, Vergleich, Beispiel
-- **Warum:** Deutsches „significant". Bei Dichte ein Zeichen, dass vage Bedeutung statt Fakten gesetzt wird; einzeln völlig unauffällig.
-- **Mensch:** Gottfried Keller war ein bedeutender Schweizer Schriftsteller des 19. Jahrhunderts.
-
 ### innovativ → sagen, was konkret neu ist
 - **Warum:** Inflations-Adjektiv im LLM-Marketing. Nur bei hoher Dichte flaggen, weil es in Wirtschaftstexten alltäglich ist.
 - **Mensch:** Das Start-up aus Lausanne gilt in der Branche als ausgesprochen innovativ.
-
-### effektiv → sagen, wie wirksam, mit Mass oder Mechanismus
-- **Warum:** Vages Wirksamkeits-Adjektiv, von LLMs bei Dichte übernutzt. Einzeln und im Sinn von „tatsächlich" (effektiver Wert) völlig normal.
-- **Mensch:** Der effektive Zinssatz lag am Ende höher als der beworbene.
 
 ### dynamisch → die konkreten Kräfte oder Veränderungen nennen
 - **Warum:** Leeres Schwung-Adjektiv („dynamisches Umfeld"), bei Dichte ein LLM-Tell. Im Fachsinn (dynamische Last, dynamische Webseite) legitim.
@@ -363,10 +339,6 @@ treffendsten Kategorie; Querverweise sind vermerkt.
 - **Warum:** Lehnübersetzung von „that's a great question". Reines Lob-Quittieren aus dem Chat-Kontext, das in einem Text keine Funktion hat und sofort als KI auffällt. (Vgl. sycophantic „das ist eine grossartige Frage".)
 - **Mensch:** An der Tagung kam aus dem Publikum eine wirklich gute Frage zur Finanzierung.
 
-#### die frage, ob → die Sache direkt behaupten oder verneinen, statt sie als Frage zu rahmen
-- **Warum:** Nominalisierte Themen-Ankündigung („the question of whether"), die LLMs als Absatzeinstieg nutzen, um eine Entscheidung hinauszuzögern. Nominalstil statt klarer Aussage.
-- **Mensch:** Die Frage, ob wir zügeln, hat uns das ganze Jahr beschäftigt.
-
 ### rhetorical-question
 
 #### aber was bedeutet das für dich → die konkrete Folge direkt nennen, z. B. «Konkret heisst das: X»
@@ -410,10 +382,6 @@ treffendsten Kategorie; Querverweise sind vermerkt.
 - **Mensch:** In meiner Forschung zeige ich, dass die Methode bei kleinen Stichproben versagt.
 
 ### hollow-intensifier
-
-#### ehrlich gesagt → weglassen, der Satz wird ehrlicher ohne die Ankündigung
-- **Warum:** Als satzeröffnender Diskursmarker ist „ehrlich gesagt" ein hohler Verstärker, den LLMs zur vorgetäuschten Aufrichtigkeit voranstellen. Pendant zu „to be honest / quite frankly".
-- **Mensch:** Hat er das ehrlich gesagt oder nur, um dich zu beruhigen?
 
 #### seien wir ehrlich → weglassen und direkt die Aussage machen
 - **Warum:** Formelhafter Pseudo-Klartext-Opener („let's be honest/clear"), der Nähe und Mut simuliert, ohne Inhalt hinzuzufügen. In deutschen LLM-Blogtexten ein wiederkehrendes Füllsel.
