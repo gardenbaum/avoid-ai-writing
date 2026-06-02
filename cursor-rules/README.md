@@ -1,31 +1,31 @@
-# Cursor Rule — avoid-ai-writing
+# Cursor-Regel — avoid-ai-writing
 
-Drop-in [Cursor](https://cursor.sh) rule that ports the [`avoid-ai-writing`](../SKILL.md) skill to Cursor's `.mdc` rule format. Functionally identical to the upstream skill — same tier vocabulary, same context profiles, same detect / rewrite modes.
+Eine direkt einsetzbare [Cursor](https://cursor.sh)-Regel, die das Skill [`avoid-ai-writing`](../SKILL.md) auf Cursors `.mdc`-Regelformat portiert. Funktional identisch zum Upstream-Skill — gleiches Stufen-Vokabular, gleiche Context-Profile, gleiche detect-/rewrite-Modi.
 
-## Install
+## Installation
 
-Copy `avoid-ai-writing.mdc` into your project's `.cursor/rules/` directory:
+Kopiere `avoid-ai-writing.mdc` in das Verzeichnis `.cursor/rules/` deines Projekts:
 
 ```sh
 mkdir -p .cursor/rules
 curl -o .cursor/rules/avoid-ai-writing.mdc \
-  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/cursor-rules/avoid-ai-writing.mdc
+  https://raw.githubusercontent.com/gardenbaum/avoid-ai-writing/main/cursor-rules/avoid-ai-writing.mdc
 ```
 
-By default the rule activates on `.md`, `.mdx`, `.txt`, `.rst`, and `.adoc` files (via the `globs` field in the frontmatter). Edit the globs in the rule file if you want it on other file types — or set `alwaysApply: true` if you want it on every Cursor session.
+Standardmässig aktiviert sich die Regel bei `.md`-, `.mdx`-, `.txt`-, `.rst`- und `.adoc`-Dateien (über das Feld `globs` im Frontmatter). Passe die Globs in der Regeldatei an, wenn du sie für andere Dateitypen willst — oder setze `alwaysApply: true`, wenn du sie in jeder Cursor-Sitzung willst.
 
-## Trigger phrases
+## Auslöser-Phrasen
 
-Once installed, ask Cursor:
-- *"Remove AI-isms from this section."*
-- *"Audit this draft for AI writing patterns."*
-- *"Make this sound less like AI."*
-- *"Run avoid-ai-writing in detect mode."* (flag without rewriting)
+Sobald die Regel installiert ist, bitte Cursor:
+- *„Entferne die KI-Floskeln aus diesem Abschnitt."*
+- *„Prüfe diesen Entwurf auf KI-Schreibmuster."*
+- *„Lass das weniger nach KI klingen."*
+- *„Führe avoid-ai-writing im detect-Modus aus."* (markieren, ohne umzuschreiben)
 
-## Old Cursor projects
+## Alte Cursor-Projekte
 
-If you're on a Cursor version that still uses `.cursorrules` (single file at repo root), you can append `avoid-ai-writing.mdc`'s body (the part below the `---` frontmatter) directly to your existing `.cursorrules` file. Modern Cursor projects should prefer the `.cursor/rules/*.mdc` layout.
+Bist du auf einer Cursor-Version, die noch `.cursorrules` nutzt (eine einzelne Datei im Repo-Wurzelverzeichnis), kannst du den Body von `avoid-ai-writing.mdc` (den Teil unterhalb des `---`-Frontmatters) direkt an deine bestehende `.cursorrules`-Datei anhängen. Moderne Cursor-Projekte sollten das Layout `.cursor/rules/*.mdc` bevorzugen.
 
-## Updating
+## Aktualisieren
 
-This file is a copy of [`SKILL.md`](../SKILL.md) with Cursor-specific frontmatter. When the upstream skill updates, this file should be re-synced. There's no automated sync between them today — open an issue if drift becomes a problem.
+Diese Datei ist eine Kopie von [`SKILL.md`](../SKILL.md) mit Cursor-spezifischem Frontmatter. Aktualisiert sich das Upstream-Skill, sollte diese Datei neu synchronisiert werden. Es gibt heute keine automatische Synchronisation zwischen beiden — öffne ein Issue, falls die Drift zum Problem wird.

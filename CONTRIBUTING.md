@@ -1,71 +1,84 @@
-# Contributing
+# Mitwirken
 
-Thanks for helping improve this skill. It teaches an LLM (and now a deterministic
-engine) to spot and fix AI-writing tells. Contributions are welcome — a few things
-keep the project coherent.
+Danke, dass du dieses Skill verbessern hilfst. Es bringt einem LLM (und neu auch
+einer deterministischen Engine) bei, KI-Schreib-Tells zu erkennen und zu beheben.
+Beiträge sind willkommen – ein paar Dinge halten das Projekt kohärent.
 
-## How the repo fits together
+## Schweizer Schreibweise
 
-| Path | What it holds |
-|------|---------------|
-| `SKILL.md` | The human-readable catalog of rules. The source of truth for what counts as an AI tell. |
-| `detector/patterns.js` | The deterministic engine — the executable subset of the rules. |
-| `detector/CATEGORIES.md` | The map between SKILL.md rules and detector `type`s. Keep it current. |
-| `README.md` | The pitch and the numbered prose-pattern list. |
-| `cursor-rules/`, `plugins/` | Editor and tool integrations. |
+Dieses Repo ist auf Deutsch in Schweizer Schreibweise verfasst. **Kein Eszett:**
+durchgängig `ss` – in Prosa, Tabellen, Beispielen, **Code-Kommentaren und
+Test-Fixtures**. Umlaute bleiben. Beispiele: muss, dass, Strasse, grösser, heisst,
+weiss, ausserdem, abschliessend. Beiträge, die das verletzen, werden nicht
+übernommen.
 
-## Adding or changing a rule
+## Wie das Repo zusammenhängt
 
-First decide which kind of rule it is:
+| Pfad | Inhalt |
+|------|--------|
+| `SKILL.md` | Der menschenlesbare Regelkatalog. Die Source of Truth dafür, was als KI-Tell gilt. |
+| `detector/patterns.js` | Die deterministische Engine – die ausführbare Teilmenge der Regeln. |
+| `detector/CATEGORIES.md` | Die Zuordnung zwischen den SKILL.md-Regeln und den Detector-`type`s. Halte sie aktuell. |
+| `README.md` | Der Pitch und die nummerierte Prosa-Muster-Liste. |
+| `cursor-rules/`, `plugins/` | Editor- und Tool-Integrationen. |
 
-- **Regex-detectable** (a phrase, a character, a structural shape) → add it to
-  `SKILL.md`, add the detection to `detector/patterns.js` with a new `type`, and
-  add a row to `detector/CATEGORIES.md`. Cover it with a fixture in
-  `detector/patterns.test.js` (both a true positive and a case that must *not*
-  fire).
-- **Judgment-only** (needs reading for meaning — tone, structure, name-dropping)
-  → add it to `SKILL.md` prose and list it under "Skill-only" in
-  `detector/CATEGORIES.md`. There is no detector type for these.
+## Eine Regel hinzufügen oder ändern
 
-If you are unsure which it is, open an issue first and we will sort it out.
+Entscheide zuerst, um welche Art Regel es sich handelt:
 
-## Precision over recall
+- **Regex-erkennbar** (eine Phrase, ein Zeichen, eine strukturelle Form) → ergänze sie
+  in `SKILL.md`, füge die Erkennung in `detector/patterns.js` mit einem neuen `type`
+  hinzu und ergänze eine Zeile in `detector/CATEGORIES.md`. Decke sie mit einer
+  Fixture in `detector/patterns.test.js` ab (einen True-Positive *und* einen Fall, der
+  *nicht* auslösen darf).
+- **Nur Ermessen** (braucht Lesen nach Sinn – Ton, Struktur, Namedropping) → ergänze
+  sie in der `SKILL.md`-Prosa und liste sie unter „Skill-only" in
+  `detector/CATEGORIES.md`. Für diese gibt es keinen Detector-`type`.
 
-This skill is deliberately biased toward false negatives: a rule that wrongly
-flags ordinary human writing is worse than one that misses a tell, because false
-positives erode trust in every other rule. Before proposing a rule, ask who would
-get flagged by mistake, and add carve-outs for the legitimate cases. A signal
-that fires on most normal prose is not worth adding.
+Wenn du unsicher bist, was von beidem es ist, eröffne zuerst ein Issue, dann klären
+wir das.
 
-## Cite your sources
+## Präzision vor Trefferquote
 
-If your rule rests on a factual claim about how AI or humans write — "ChatGPT
-emits curly quotes by default," "most writers rarely do X" — link a source for
-it. These claims get checked, and some turn out wrong or more nuanced than they
-first seem (smart quotes, for instance, are a typing-time default on macOS and in
-Word, not a publication-step artifact). A claim with a citation can be verified;
-an asserted one can't. Put the links in the PR description or inline in the rule.
+Dieses Skill ist bewusst auf False Negatives ausgerichtet: eine Regel, die
+gewöhnliches menschliches Schreiben fälschlich flaggt, ist schlimmer als eine, die ein
+Tell übersieht, weil False Positives das Vertrauen in jede andere Regel untergraben.
+Bevor du eine Regel vorschlägst, frag dich, wer fälschlich geflaggt würde, und ergänze
+Carve-outs für die legitimen Fälle. Ein Signal, das auf normaler Prosa auslöst, lohnt
+sich nicht.
 
-## Run the tests
+## Belege deine Quellen
+
+Wenn deine Regel auf einer Tatsachenbehauptung darüber beruht, wie KI oder Menschen
+schreiben – „der Geviertstrich `—` ist im Deutschen untypisch", „die meisten
+Schreibenden tun X selten" – verlinke eine Quelle dafür. Diese Behauptungen werden
+geprüft, und manche stellen sich als falsch oder vielschichtiger heraus, als sie
+zuerst scheinen (typografische Anführungszeichen etwa sind ein Tipp-Zeit-Standard von
+macOS und Word, kein Artefakt des Publikationsschritts). Eine Behauptung mit Quelle
+lässt sich verifizieren, eine bloss behauptete nicht. Setze die Links in die
+PR-Beschreibung oder direkt in die Regel.
+
+## Tests ausführen
 
 ```bash
 npm test
 ```
 
-This runs the engine fixtures and the `CATEGORIES.md` contract check (every
-detector `type` must be documented, and every documented type must be real). Both
-must pass. No dependencies to install; Node 18+ only.
+Das führt die Engine-Fixtures und den Vertrags-Check von `CATEGORIES.md` aus (jeder
+Detector-`type` muss dokumentiert sein, und jeder dokumentierte Typ muss echt sein).
+Beide müssen bestehen. Keine Abhängigkeiten zu installieren; nur Node 18+.
 
-## Write clean prose
+## Sauber schreiben
 
-This repo polices writing quality, so the prose you add has to clear the same
-bar. Run your additions through the skill itself. Keep rule bullets terse and
-lead with the directive — match the length and tone of the bullets already in
-`SKILL.md`. Drop intensifiers like "strong" or "powerful"; let the rule stand on
-its own.
+Dieses Repo überwacht die Schreibqualität, also muss die Prosa, die du ergänzt,
+dieselbe Latte reissen. Lass deine Ergänzungen durch das Skill selbst laufen. Halte
+Regel-Punkte knapp und beginne mit der Anweisung – orientiere dich an Länge und Ton der
+Punkte, die schon in `SKILL.md` stehen. Streiche Verstärker wie „stark" oder
+„mächtig"; lass die Regel für sich stehen.
 
-## Changelog and versioning
+## Changelog und Versionierung
 
-Add an entry to `CHANGELOG.md` under a dated, versioned heading
-(`## [X.Y.Z] — YYYY-MM-DD`), matching the existing entries. A new rule is a minor
-version bump; update the `version:` field in the `SKILL.md` frontmatter to match.
+Ergänze einen Eintrag in `CHANGELOG.md` unter einer datierten, versionierten
+Überschrift (`## [X.Y.Z] – JJJJ-MM-TT`), passend zu den bestehenden Einträgen. Eine
+neue Regel ist ein Minor-Versionssprung; aktualisiere das Feld `version:` in der
+`SKILL.md`-Frontmatter entsprechend.

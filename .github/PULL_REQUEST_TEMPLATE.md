@@ -1,13 +1,14 @@
-## Summary
+## Zusammenfassung
 
-<!-- What does this change and why? -->
+<!-- Was ändert dieser PR und warum? -->
 
-## Checklist
+## Checkliste
 
-- [ ] `npm test` passes (engine fixtures + `CATEGORIES.md` contract check)
-- [ ] If I added a detector `type`: it's documented in `detector/CATEGORIES.md` and has a fixture in `detector/patterns.test.js` (a true positive **and** a must-not-fire case)
-- [ ] If I added a judgment-only rule: it's listed under "Skill-only" in `detector/CATEGORIES.md`
-- [ ] I considered false positives and added carve-outs for legitimate human writing
-- [ ] Any factual claim about how AI or humans write (e.g. "ChatGPT emits X", "humans rarely do Y") cites a source
-- [ ] The prose I added passes the skill's own audit (no AI-writing tells, terse bullets, no hollow intensifiers)
-- [ ] `CHANGELOG.md` entry added under a dated `## [X.Y.Z]` heading, and `SKILL.md` `version:` bumped if a rule changed
+- [ ] `npm test` läuft durch (Engine-Fixtures + Vertrags-Check von `CATEGORIES.md`)
+- [ ] Falls ich einen Detector-`type` hinzugefügt habe: er ist in `detector/CATEGORIES.md` dokumentiert und hat eine Fixture in `detector/patterns.test.js` (einen True-Positive **und** einen Fall, der nicht auslösen darf)
+- [ ] Falls ich eine Nur-Ermessen-Regel hinzugefügt habe: sie ist unter „Skill-only" in `detector/CATEGORIES.md` gelistet
+- [ ] Ich habe False Positives bedacht und Carve-outs für legitimes menschliches Schreiben ergänzt
+- [ ] Jede Tatsachenbehauptung darüber, wie KI oder Menschen schreiben (z. B. „ChatGPT gibt X aus", „Menschen tun Y selten"), nennt eine Quelle
+- [ ] Die Prosa, die ich ergänzt habe, besteht die eigene Prüfung des Skills (keine KI-Schreib-Tells, knappe Punkte, keine hohlen Verstärker)
+- [ ] Schweizer Schreibweise eingehalten – kein Eszett, durchgängig `ss` (auch in Code-Kommentaren und Fixtures)
+- [ ] `CHANGELOG.md`-Eintrag unter einer datierten `## [X.Y.Z]`-Überschrift ergänzt, und `SKILL.md`-`version:` erhöht, falls sich eine Regel geändert hat

@@ -1,256 +1,290 @@
 # Changelog
 
-All notable changes to this project are documented here.
+Alle nennenswerten Änderungen an diesem Projekt sind hier dokumentiert.
+
+---
+
+## [4.0.0] — 2026-06-02 — Deutsche/Schweizer Portierung
+
+### Geändert
+- Gesamtes Repository auf Deutsch in Schweizer Schreibweise (kein Eszett, durchgängig
+  `ss`) umgestellt – Skill, Detector-Engine, Tests, Doku und CI. Vokabular und Muster
+  stammen aus recherchierten deutschen LLM-Tells (siehe
+  `docs/superpowers/research/de-tells.md`), nicht aus einer Übersetzung der englischen
+  Listen: KI-Schreib-Tells sind sprachspezifisch.
+- Detector: `em-dash` umgekehrt – der Geviertstrich `—` (U+2014) ist im Deutschen das
+  Tell, der Halbgeviertstrich `–` (U+2013, mit Leerzeichen) ist die korrekte
+  Zeichensetzung und wird nachsichtig behandelt.
+- Detector: `smart-punct-signature` neu ohne Oxford-Komma (kein deutsches Konstrukt) –
+  die Signatur setzt sich aus dem Geviertstrich, den Schreib-Anführungszeichen und
+  einem fehlerfreien Tippmuster zusammen.
+- Detector: `bullet-np`-Liste, Funktionswort-Listen und `nominalstil` auf Deutsch;
+  Anführungszeichen-Carve-out für `„ "` und die Guillemets `« »`.
+- Detector: `title-case-header` entfernt – Deutsch schreibt alle Substantive gross,
+  damit gibt es keine „Title Case" als Tell. Dafür `nominalstil`
+  (Funktionsverbgefüge / `-ung`-Häufung) neu aufgenommen; netto weiter 43 `type`s.
+- Stylometrie-Schwellen (Type-Token-Ratio, Burstiness, Trigramm-Entropie) als
+  dokumentierte Heuristik mit Kalibrierungs-Vorbehalt gekennzeichnet: sie sind auf
+  englischen Korpora kalibriert, deutsche Flexion und Komposita verschieben die
+  Verteilung.
+- Score-Labels auf Deutsch: „Sauber", „Minimale KI-Signale", „Einige KI-Muster",
+  „Moderate KI-Signale", „Starke KI-Signale", „Viele KI-Muster".
+- Repo- und Install-URLs auf `github.com/gardenbaum/avoid-ai-writing` umgestellt;
+  Version überall auf `4.0.0` synchronisiert.
+
+### Attribution
+- Aufbauend auf dem Upstream-Skill von Conor Bronsdon (MIT-Lizenz). Diese Fassung ist
+  die deutsche/schweizer Portierung; die Upstream-Attribution bleibt erhalten.
 
 ---
 
 ## [3.8.0] — 2026-05-29
 
-### Added
-- **Self-labeling significance** — back-pointing labels that flag which item in a list is supposed to matter ("That last move is the contrarian one," "This is the interesting part," "That third bullet is the real story") instead of writing the list so the right item carries the weight on its own. Distinct from confidence calibration (which front-loads the cue) and emotional flatline (which prefaces a single claim) — this one back-points after the fact. Catalog goes from 46 to 47 detection categories. LLM-judgment rule (no detector `type`); documented in `detector/CATEGORIES.md` §C.
+### Hinzugefügt
+- **Selbst-etikettierte Bedeutsamkeit** – rückverweisende Etiketten, die anzeigen, welches Element einer Liste eigentlich zählen soll („Der letzte Punkt ist der kontroverse", „Das ist der spannende Teil", „Der dritte Aufzählungspunkt ist die eigentliche Geschichte"), statt die Liste so zu schreiben, dass das richtige Element das Gewicht von selbst trägt. Verschieden von der Confidence-Kalibrierung (die den Hinweis voranstellt) und vom emotionalen Flatline (das eine einzelne Aussage anmoderiert) – diese Variante verweist nachträglich zurück. Der Katalog wächst von 46 auf 47 Erkennungskategorien. LLM-Judgment-Regel (kein Detector-`type`); dokumentiert in `detector/CATEGORIES.md` §C.
 
 ---
 
 ## [3.7.2] — 2026-05-28
 
-### Changed
-- **Curly quotation marks** — recalibrated per review of #15. Reframed from a "strong" tell to a **weak, corroborating** signal meaningful mainly in plain-text contexts (code comments, commit messages, plaintext drafts), since Word/Google Docs/macOS/iOS auto-curl quotes by default. Curly apostrophes (U+2019) are no longer flagged on their own (they appear in every contraction). Fixes the German low-9 example. Keeps it consistent with the deterministic detector's co-occurrence logic (#16).
+### Geändert
+- **Typografische Anführungszeichen** – neu kalibriert nach dem Review von #15. Vom „starken" Tell zu einem **schwachen, bestätigenden** Signal umgewertet, das vor allem in Klartext-Kontexten (Code-Kommentare, Commit-Nachrichten, Klartext-Entwürfe) aussagekräftig ist, weil Word/Google Docs/macOS/iOS Anführungszeichen standardmässig selbst runden. Typografische Apostrophe (U+2019) werden allein nicht mehr geflaggt (sie stecken in jeder Verkürzung). Behebt das deutsche Beispiel mit den unteren Anführungszeichen. Bleibt konsistent mit der Ko-Auftretens-Logik des deterministischen Detectors (#16).
 
 ---
 
 ## [3.7.1] — 2026-05-28
 
-### Changed
-- **Curly quotation marks** — refined the 3.7.0 "mixed straight/curly punctuation" rule into a single Formatting rule: flag the unexplained presence of Unicode curly quotes (U+201C / U+201D / U+2018 / U+2019) in otherwise plain-ASCII text as a copy-paste-from-chat fingerprint, with carve-outs for deliberate publication typography and locale-correct punctuation (French guillemets, German low-9 quotes).
-- Version bump to 3.7.1.
+### Geändert
+- **Typografische Anführungszeichen** – die Regel „gemischte gerade/typografische Zeichensetzung" aus 3.7.0 zu einer einzigen Formatierungsregel verfeinert: das unerklärte Auftreten typografischer Unicode-Anführungszeichen (U+201C / U+201D / U+2018 / U+2019) in sonst rein ASCII-haltigem Text als Fingerabdruck eines Copy-Paste aus dem Chat flaggen, mit Ausnahmen für bewusste Publikationstypografie und lokal korrekte Zeichensetzung (französische Guillemets, deutsche untere Anführungszeichen).
+- Versionssprung auf 3.7.1.
 
-### Credit
-- Contributed by [@augustasas](https://github.com/augustasas) (#15).
+### Dank
+- Beigetragen von [@augustasas](https://github.com/augustasas) (#15).
 
 ---
 ## [3.7.0] — 2026-05-28
 
-### Added
-- **Hyphenated-pair overuse** — stacked compound modifiers ("a high-quality, well-architected, future-proof solution") and the attributive/predicate error (hyphenate "a high-quality report" but not "the report is high quality").
-- **Speculative gap-filling** — hedged speculation dressed as background ("maintains a low profile," "is believed to have," "likely began his career") that hides a knowledge gap rather than admitting it. Distinct from cutoff disclaimers.
+### Hinzugefügt
+- **Überhäufte Bindestrich-Paare** – gestapelte zusammengesetzte Attribute („eine hochwertige, gut durchdachte, zukunftssichere Lösung") und der attributive/prädikative Fehler (Bindestrich bei „ein hochwertiger Bericht", aber nicht bei „der Bericht ist hochwertig").
+- **Spekulatives Lückenfüllen** – abgesicherte Spekulation, die als Hintergrund getarnt ist („hält sich bedeckt", „soll angeblich", „begann vermutlich seine Karriere") und eine Wissenslücke verdeckt, statt sie einzugestehen. Verschieden vom Cutoff-Disclaimer.
 
-### Changed
-- **Formatting** — added **mixed straight/curly punctuation** (quote/apostrophe style mixed in one document — a paste-from-chat-UI tell).
-- **Confidence calibration phrases** — extended with **persuasive-authority tropes** ("the real question is," "at its core," "fundamentally," "make no mistake").
-- Version bump to 3.7.0.
+### Geändert
+- **Formatierung** – **gemischte gerade/typografische Zeichensetzung** ergänzt (Anführungszeichen-/Apostroph-Stil in einem Dokument gemischt – ein Paste-aus-dem-Chat-Tell).
+- **Confidence-Kalibrierungs-Phrasen** – um **Autoritäts-Topoi** erweitert („die eigentliche Frage ist", „im Kern", „grundsätzlich", „eines steht fest").
+- Versionssprung auf 3.7.0.
 
-### Credit
-- Patterns adapted from `blader/humanizer` (P21, P26, P27) and Wikipedia's "Signs of AI writing," identified in the competitive research tracked in #22.
+### Dank
+- Muster übernommen aus `blader/humanizer` (P21, P26, P27) und Wikipedias „Signs of AI writing", ermittelt in der in #22 verfolgten Konkurrenz-Recherche.
 
 ---
 
 ## [3.6.0] — 2026-05-28
 
-### Added
-- **Voice profiles** — an optional persona axis, independent of the audience context profiles. Five profiles (`casual`, `professional`, `technical`, `warm`, `blunt`), each a set of concrete targets (sentence length, contraction policy, hedging tolerance, jargon level, rhythm) drawn from writing-craft sources (Strunk, Provost, Ogilvy, Handley). Plus optional calibration to a user-supplied writing sample. Includes a composition rule: voice sets the target, context sets enforcement strictness, conflicts resolve toward the stricter.
-- **Edit mode** — a third mode alongside `rewrite` and `detect`. Edits a named file in place via the Edit tool with minimal, targeted changes, preserving already-human passages, then re-reads to verify. Returns an edits-made + verification report, not the full file.
-- **Iterate to convergence** — rewrite mode can repeat the audit→rewrite cycle until no patterns remain or N passes (capped at 2). Generalizes the existing built-in second pass.
-- **Invocation surface** — documented optional flags (`--mode`, `--voice`, `--context`, `--file`, `--iterate N`) alongside the existing natural-language triggers.
+### Hinzugefügt
+- **Voice-Profile** – eine optionale Persona-Achse, unabhängig von den Zielgruppen-Context-Profilen. Fünf Profile (`casual`, `professional`, `technical`, `warm`, `blunt`), jedes ein Satz konkreter Zielwerte (Satzlänge, Kürzungs-Politik, Hedging-Toleranz, Jargon-Niveau, Rhythmus) aus schreibhandwerklichen Quellen (Strunk, Provost, Ogilvy, Handley). Plus optionale Kalibrierung an einer vom Nutzer gelieferten Schreibprobe. Mit einer Kompositionsregel: Voice setzt das Ziel, Context die Strenge der Durchsetzung, Konflikte lösen sich zugunsten des Strengeren auf.
+- **Edit-Modus** – ein dritter Modus neben `rewrite` und `detect`. Bearbeitet eine benannte Datei direkt über das Edit-Tool mit minimalen, gezielten Änderungen, bewahrt bereits menschliche Passagen und liest danach zur Prüfung erneut. Liefert einen Bericht über die gemachten Änderungen plus Prüfung, nicht die ganze Datei.
+- **Iterieren bis stabil** – der Rewrite-Modus kann den Zyklus aus Prüfen und Umschreiben wiederholen, bis keine Muster mehr bleiben oder N Durchläufe erreicht sind (auf 2 begrenzt). Verallgemeinert den bestehenden eingebauten zweiten Durchlauf.
+- **Aufruf-Oberfläche** – dokumentierte optionale Flags (`--mode`, `--voice`, `--context`, `--file`, `--iterate N`) neben den bestehenden natürlichsprachlichen Auslösern.
 
-### Changed
-- Frontmatter `description` updated to advertise the new modes and voice profiles.
-- Version bump to 3.6.0.
+### Geändert
+- Frontmatter-`description` aktualisiert, um die neuen Modi und Voice-Profile auszuweisen.
+- Versionssprung auf 3.6.0.
 
-### Notes
-- Designed from a competitive feature audit (Aboudjem/humanizer-skill, brandonwise/humanizer, blader/humanizer) plus detection-science and writing-craft research. The `--score` feature and four additional catalog patterns from that research are tracked separately (#21, #22).
+### Anmerkungen
+- Entworfen aus einem Konkurrenz-Feature-Audit (Aboudjem/humanizer-skill, brandonwise/humanizer, blader/humanizer) plus Detektions- und Schreibhandwerks-Recherche. Das `--score`-Feature und vier zusätzliche Katalog-Muster aus dieser Recherche werden separat verfolgt (#21, #22).
 
 ---
 
 ## [3.5.0] — 2026-05-27
 
-### Added
-- **Infomercial engagement hooks** — punchy fragment-hooks that fake momentum around ordinary information: "The catch?", "The kicker?", "Here's the thing.", "Plot twist:", "The best part?". Distinct from rhetorical-question openers (which stall before a point) and chatbot artifacts (which perform helpfulness).
-- **Paragraph-reshuffle immunity** — a writer-side structure test: if you can swap two body paragraphs without breaking the piece, you've written a list of points, not an argument that builds.
-- **Treadmill effect / low information density** — a writer-side content test: each paragraph should contribute one new fact, claim, or turn rather than restate the premise in fresh words. The tell is that you could cut 40-60% and lose no information.
+### Hinzugefügt
+- **Werbe-Aufhänger im Infomercial-Stil** – knackige Satzfragment-Haken, die um gewöhnliche Information herum Schwung vortäuschen: „Der Haken?", „Der Clou?", „Und jetzt kommts.", „Plot Twist:", „Das Beste daran?". Verschieden von rhetorischen Frage-Openern (die vor einem Punkt stocken) und Chatbot-Artefakten (die Hilfsbereitschaft aufführen).
+- **Absatz-Umsortier-Test** – ein autorenseitiger Struktur-Test: Wenn du zwei Fliesstext-Absätze tauschen kannst, ohne den Text zu zerstören, hast du eine Liste von Punkten geschrieben, kein Argument, das aufbaut.
+- **Tretmühlen-Effekt / geringe Informationsdichte** – ein autorenseitiger Inhalts-Test: Jeder Absatz sollte einen neuen Fakt, eine neue Behauptung oder eine Wendung beitragen, statt die Prämisse mit frischen Worten zu wiederholen. Das Tell ist, dass du 40–60 % streichen könntest, ohne Information zu verlieren.
 
-### Changed
-- **Superficial -ing analyses** — extended to cover the declarative "meaning-telling" variant ("this represents a broader shift," "speaks to a larger trend") that glosses a mundane subject as profound without the -ing construction.
-- Version bump to 3.5.0.
+### Geändert
+- **Oberflächliche -ing-Analysen** – erweitert um die deklarative „Bedeutungs-Erzähl"-Variante („dies steht für einen breiteren Wandel", „verweist auf einen grösseren Trend"), die ein banales Thema als tiefgründig ausgibt, ohne die -ing-Konstruktion.
+- Versionssprung auf 3.5.0.
 
-### Credit
-- Patterns adapted from [`Aboudjem/humanizer-skill`](https://github.com/Aboudjem/humanizer-skill) (P38, P40, P41, P43), identified during a competitive catalog audit.
+### Dank
+- Muster übernommen aus [`Aboudjem/humanizer-skill`](https://github.com/Aboudjem/humanizer-skill) (P38, P40, P41, P43), ermittelt bei einem Konkurrenz-Katalog-Audit.
 
 ---
 
 ## [3.4.0] — 2026-05-16
 
-### Added
-- **Tier 3 phrases** — multi-word boilerplate that's individually unobjectionable but stacks heavily in AI-generated crypto/web3/DePIN/AI-infra content: `emerging sector`, `the integration of`, `the intersection of`, `community-driven`, `long-term sustainability`, `user engagement`, `decentralized compute`, `sustainable reward emissions`, `tokenized incentive structures`, `designed for long-term`. Flagged by per-phrase density (≥2 repetitions) *or* cluster (≥3 distinct phrases in one piece — the LLM-varies-its-own-boilerplate shape).
-- **Generic future-narrative closers** — "May become one of the most important narratives of the next market cycle" template family. Modal + "become" + (one of) the most + (narrative / story / trend / theme / chapter / movement).
-- **Hedge-stacked predictions** — `could potentially`, `may eventually`, `might ultimately`. Modal + hedge adverb stack where each word cancels the next.
-- **"Real/actual" adjective inflation** — `real on-chain tokenomics`, `actual reward sustainability`, `genuine utility`, `true product-market fit`. The noun-modifier form distinct from the existing sentence-level hollow-intensifier rule.
-- **Hashtag stuffing** — trailing blocks of 6+ hashtags on short posts, especially when mixing one project tag with broad category tags (#AI #Crypto #Web3 #Innovation #FutureTech).
-- **Bullet lists of bare noun phrases** — 5+ consecutive bullets where each is a short adj+noun pair with no verb. Detector heuristic excludes genuine list content (verbs in items, ingredient lists, changelog entries).
+### Hinzugefügt
+- **Tier-3-Phrasen** – Mehrwort-Boilerplate, das einzeln harmlos ist, sich aber in KI-generierten Krypto-/Web3-/DePIN-/KI-Infra-Texten stark stapelt: `die Integration von`, `die Schnittstelle von`, `community-getrieben`, `langfristige Nachhaltigkeit`, `Nutzer-Engagement`, `dezentrale Rechenleistung`, `nachhaltige Token-Ausschüttungen`, `tokenisierte Anreizstrukturen`. Geflaggt nach Phrasen-Dichte (≥2 Wiederholungen) *oder* im Cluster (≥3 verschiedene Phrasen in einem Text – die Form, in der das LLM sein eigenes Boilerplate variiert).
+- **Generische Zukunfts-Erzählschlüsse** – die Vorlagen-Familie „könnte zu einem der wichtigsten Narrative der nächsten Jahre werden". Modal + „werden" + (eines der) wichtigsten/bedeutendsten + (Narrativ / Geschichte / Trend / Thema / Entwicklung).
+- **Hedge-gestapelte Prognosen** – `könnte möglicherweise`, `dürfte eventuell`, `mag letztlich`. Modal + Hedge-Adverb-Stapel, in dem ein Wort das nächste aufhebt.
+- **„Echt/tatsächlich"-Adjektiv-Inflation** – `echte Tokenomics`, `tatsächliche Nachhaltigkeit der Belohnung`, `echter Nutzen`, `wahre Marktreife`. Die Nomen-Modifikator-Form, verschieden von der bestehenden satzweiten Hohle-Verstärker-Regel.
+- **Hashtag-Stopfen** – angehängte Blöcke von 6+ Hashtags auf kurzen Posts, besonders wenn ein Projekt-Tag mit breiten Kategorie-Tags gemischt wird (#KI #Krypto #Web3 #Innovation #ZukunftsTech).
+- **Aufzählungslisten aus blossen Nominalphrasen** – 5+ aufeinanderfolgende Aufzählungspunkte, die jeweils ein kurzes Adjektiv-Nomen-Paar ohne Verb sind. Die Detector-Heuristik schliesst echten Listeninhalt aus (Verben in den Punkten, Zutatenlisten, Changelog-Einträge).
 
-### Changed
-- **Emotional flatline** — extended to cover the bare section-header variant: "Interesting part of the project:" / "Interesting thing here:" — same role as "the most interesting part" but as a header opener.
-- **Severity tiers** — all six new categories wired into P0/P1/P2 ladder (hashtag stuffing varies by profile; the rest are P1, with phrase repetition at P2).
-- **Context profiles tolerance matrix** — added rows for all six new categories so the `linkedin` and `docs` profiles don't false-positive on legitimate use (e.g., bullet-NP lists relaxed on `technical-blog` and `docs` since technical option lists are correctly bare-NP).
-- **"6+" hashtag threshold** — added rationale paragraph explaining the empirical floor.
-- **"Real/actual" inflation** — added named-contrast carve-out so honest contrastive writing ("real on-chain settlement, not bridged IOUs") isn't flagged.
-- Version bump to 3.4.0.
+### Geändert
+- **Emotionaler Flatline** – erweitert um die blosse Abschnitts-Überschrift-Variante: „Interessanter Teil des Projekts:" / „Interessant hier:" – dieselbe Rolle wie „der interessanteste Teil", aber als Überschrift-Opener.
+- **Severity-Tiers** – alle sechs neuen Kategorien in die P0/P1/P2-Leiter eingebaut (Hashtag-Stopfen variiert nach Profil; der Rest ist P1, Phrasen-Wiederholung P2).
+- **Toleranzmatrix der Context-Profile** – Zeilen für alle sechs neuen Kategorien ergänzt, damit die Profile `linkedin` und `docs` keine Fehlalarme bei legitimer Nutzung auslösen (z. B. Nominalphrasen-Listen auf `technical-blog` und `docs` gelockert, weil technische Optionslisten korrekt aus blossen Nominalphrasen bestehen).
+- **„6+"-Hashtag-Schwelle** – Begründungs-Absatz ergänzt, der die empirische Untergrenze erklärt.
+- **„Echt/tatsächlich"-Inflation** – benannter Kontrast-Carve-out ergänzt, damit ehrliches kontrastives Schreiben („echte On-Chain-Abwicklung, keine überbrückten Schuldscheine") nicht geflaggt wird.
+- Versionssprung auf 3.4.0.
 
-### Reported by
-- A user of the avoid-ai-writing extension flagged two crypto-shill social posts (MineBench reviews) that the v3.3.x wordlist+regex detector scored as "Minimal AI signals" despite being obvious LLM output. Both posts avoided every Tier 1 vocabulary entry by substituting synonyms ("emerging sector," "scalable network contribution," "viability") and used structural shapes (hashtag block, bare-NP bullet lists, hedge stacks, future-narrative templates) the detector had no rule for. v3.4 adds rules for the structures, not just the words.
+### Gemeldet von
+- Ein Nutzer der avoid-ai-writing-Erweiterung meldete zwei Krypto-Werbe-Social-Posts (MineBench-Reviews), die der Wortlisten-/Regex-Detector der Version 3.3.x als „Minimale KI-Signale" bewertete, obwohl sie offensichtlich LLM-Output waren. Beide Posts umgingen jeden Tier-1-Vokabeleintrag durch Synonyme („aufstrebender Sektor", „skalierbarer Netzwerkbeitrag", „Tragfähigkeit") und nutzten strukturelle Formen (Hashtag-Block, Nominalphrasen-Listen, Hedge-Stapel, Zukunfts-Erzählvorlagen), für die der Detector keine Regel hatte. v3.4 ergänzt Regeln für die Strukturen, nicht nur für die Wörter.
 
 ---
 
 ## [3.3.0] — 2026-04-01
 
-### Added
-- **"Worth [verb]ing" vague endorsement pattern**: `worth reading`, `worth paying attention to`, `worth a look`, `worth exploring`, `worth checking out`, `worth your time` — broadens existing "it's worth noting that" to the full family
-- **Reader-steering frames**: `Here's what's interesting`, `Here's what caught my eye`, `Here's what stood out` — added to both transition phrases and confidence calibration sections with context on when the pattern is a genuine problem vs. when data-backed usage is acceptable
+### Hinzugefügt
+- **„Lohnt sich zu [Verb]"-Muster der vagen Empfehlung**: `lesenswert`, `beachtenswert`, `einen Blick wert`, `erkundenswert`, `einen Versuch wert`, `deine Zeit wert` – erweitert das bestehende „es ist erwähnenswert, dass" zur ganzen Familie
+- **Leser-lenkende Rahmen**: `Das Interessante daran ist`, `Was mir ins Auge fiel`, `Was herausstach` – sowohl zu den Übergangs-Phrasen als auch zum Confidence-Kalibrierungs-Abschnitt ergänzt, mit Kontext dazu, wann das Muster ein echtes Problem ist und wann eine datengestützte Verwendung in Ordnung geht
 
-### Changed
-- Version bump to 3.3.0
+### Geändert
+- Versionssprung auf 3.3.0
 
 ---
 
 ## [3.2.0] — 2026-03-31
 
-### Added
-- **Detect mode**: flag-only mode that identifies AI patterns without rewriting. Trigger with "detect," "flag only," "audit only," "just flag," "scan," or similar. Returns issues grouped by severity (P0/P1/P2) plus an assessment of which flags are clear problems vs. judgment calls. Useful when flagged patterns are intentional, when auditing published or third-party content, or when you want a quick scan without a full rewrite.
+### Hinzugefügt
+- **Detect-Modus**: ein Nur-Prüfen-Modus, der KI-Muster erkennt, ohne umzuschreiben. Wird ausgelöst mit „prüfen", „nur flaggen", „nur auditieren", „nur markieren", „scannen" oder Ähnlichem. Liefert nach Severity (P0/P1/P2) gruppierte Befunde plus eine Einschätzung, welche Flags klare Probleme und welche Ermessensfragen sind. Nützlich, wenn geflaggte Muster gewollt sind, wenn publizierte oder fremde Inhalte geprüft werden oder wenn man einen schnellen Scan ohne vollständiges Umschreiben will.
 
-### Changed
-- Output format section now documents both rewrite (default) and detect mode outputs
-- Version bump to 3.2.0
+### Geändert
+- Der Abschnitt zum Output-Format dokumentiert nun sowohl die Ausgaben des Rewrite-Modus (Standard) als auch des Detect-Modus
+- Versionssprung auf 3.2.0
 
 ---
 
 ## [3.1.0] — 2026-03-25
 
-### Added
-- 3 new Tier 1 words from Pangram AI detection research: `keen` (as intensifier), `symphony` (metaphor), `embrace` (metaphor)
-- 2 new template phrases: "Whether you're X or Y" (false-breadth), "I recently had the pleasure of" (review/social AI pattern)
-- "In summary" added to transition phrases (alongside existing "In conclusion" / "To summarize")
-- Structure-priority note in Rhythm section: structural regularity is the #1 signal AI detectors weight, above vocabulary
-- Over-polishing warning: aggressive editing can push writing toward AI statistical profiles by removing natural disfluency
+### Hinzugefügt
+- 3 neue Tier-1-Wörter aus der Detektions-Recherche von Pangram AI: `keck` (als Verstärker), `Sinfonie` (Metapher), `umarmen` (Metapher)
+- 2 neue Vorlagen-Phrasen: „Ob du nun X oder Y bist" (falsche Breite), „Ich hatte kürzlich das Vergnügen" (Review-/Social-KI-Muster)
+- „Zusammenfassend" zu den Übergangs-Phrasen ergänzt (neben dem bestehenden „Abschliessend" / „Um es zusammenzufassen")
+- Hinweis zur Struktur-Priorität im Rhythmus-Abschnitt: strukturelle Regelmässigkeit ist das Signal Nr. 1, das KI-Detektoren gewichten, noch vor dem Vokabular
+- Warnung vor Überpolieren: zu aggressives Bearbeiten kann das Geschriebene in Richtung der statistischen KI-Profile schieben, weil es natürliche Unebenheiten entfernt
 
-### Changed
-- Total vocabulary: 106 → 109 entries (60 Tier 1 + 38 Tier 2 + 11 Tier 3)
-- Template phrases: 2 → 4 entries
+### Geändert
+- Vokabular gesamt: 106 → 109 Einträge (60 Tier 1 + 38 Tier 2 + 11 Tier 3)
+- Vorlagen-Phrasen: 2 → 4 Einträge
 
-### Source
-- Pangram Labs AI detection research (pangram.com) — decoder-only classifier trained on 28M human documents. Key insight: structural uniformity and pacing consistency are weighted higher than individual word choices.
+### Quelle
+- Detektions-Recherche von Pangram Labs (pangram.com) – Decoder-only-Klassifikator, trainiert auf 28 Mio. menschlichen Dokumenten. Kernerkenntnis: strukturelle Gleichförmigkeit und Tempo-Konsistenz werden höher gewichtet als einzelne Wortwahl.
 
 ---
 
 ## [3.0.0] — 2026-03-20
 
-### Added
-- Novelty inflation pattern (AI treats established concepts as speaker inventions)
-- False concession structure pattern
-- Rhetorical question openers pattern
-- Parenthetical hedging pattern
-- Numbered list inflation pattern
-- Severity tiers (P0/P1/P2) for prioritized auditing
-- Self-reference escape hatch (exempts quoted examples from flagging)
-- Context profiles with tolerance matrix (linkedin, blog, technical-blog, investor-email, docs, casual)
-- Auto-detection cues for context inference
-- Extended frontmatter: license, compatibility, author, tags, agentskills_spec
+### Hinzugefügt
+- Muster der Neuheits-Inflation (KI behandelt etablierte Konzepte als Erfindungen des Sprechenden)
+- Muster des falschen Zugeständnisses
+- Muster der rhetorischen Frage-Opener
+- Muster des parenthetischen Hedging
+- Muster der aufgeblähten nummerierten Listen
+- Severity-Tiers (P0/P1/P2) für priorisiertes Auditieren
+- Self-Reference-Escape-Hatch (nimmt zitierte Beispiele vom Flaggen aus)
+- Context-Profile mit Toleranzmatrix (linkedin, blog, technical-blog, investor-email, docs, casual)
+- Auto-Detection-Cues für die Kontext-Erschliessung
+- Erweiterte Frontmatter: license, compatibility, author, tags, agentskills_spec
 
-### Changed
-- Pattern count: 30 → 35 categories
+### Geändert
+- Musteranzahl: 30 → 35 Kategorien
 
 ---
 
 ## [2.2.0] — 2026-03-18
 
-### Added
-- OpenClaw compatibility — added `version` and `metadata.openclaw` to SKILL.md frontmatter
-- OpenClaw installation instructions in README (ClawHub and manual)
-- Skill now works with both Claude Code and OpenClaw from a single `SKILL.md`
+### Hinzugefügt
+- OpenClaw-Kompatibilität – `version` und `metadata.openclaw` zur SKILL.md-Frontmatter ergänzt
+- OpenClaw-Installationsanleitung in der README (ClawHub und manuell)
+- Das Skill funktioniert nun mit Claude Code und OpenClaw aus einer einzigen `SKILL.md`
 
-### Changed
-- `README.md` — broadened description to reference both platforms, reorganized installation into Claude Code and OpenClaw sections
+### Geändert
+- `README.md` – Beschreibung auf beide Plattformen erweitert, Installation in Claude-Code- und OpenClaw-Abschnitte gegliedert
 
 ---
 
 ## [2.1.0] — 2026-03-18
 
-### Added
-- 5 new pattern categories: reasoning chain artifacts, sycophantic tone, acknowledgment loops, confidence calibration phrases, excessive structure
-- New "Rhythm and uniformity" section — checks for sentence length uniformity, paragraph length uniformity, missing first-person perspective, and read-aloud test guidance
-- New "When to rewrite from scratch vs. patch" threshold — advises full rewrites when AI density is too high for patching
-- 5 rewrite principles in tone calibration section (vary length, be concrete, have a voice, cut neutrality, earn emphasis)
-- New "Meta Patterns" group in README pattern table
-- Expanded credits: OpenClaw humanizer ecosystem (community patterns)
+### Hinzugefügt
+- 5 neue Musterkategorien: Reasoning-Chain-Artefakte, schmeichlerischer Ton, Bestätigungs-Schleifen, Confidence-Kalibrierungs-Phrasen, übermässige Struktur
+- Neuer Abschnitt „Rhythmus und Gleichförmigkeit" – prüft auf gleichförmige Satzlängen, gleichförmige Absatzlängen, fehlende Ich-Perspektive und gibt eine Vorlese-Test-Anleitung
+- Neuer Schwellenwert „Wann komplett neu schreiben statt flicken" – rät zu vollständigen Neuschrieben, wenn die KI-Dichte für ein Flicken zu hoch ist
+- 5 Rewrite-Prinzipien im Ton-Kalibrierungs-Abschnitt (Länge variieren, konkret sein, eine Stimme haben, Neutralität streichen, Betonung verdienen)
+- Neue Gruppe „Meta-Muster" in der README-Tabelle
+- Erweiterte Credits: OpenClaw-Humanizer-Ökosystem (Community-Muster)
 
-### Changed
-- Pattern count: 23 → 30 categories
-- `README.md` — updated pattern count, added Meta Patterns table, expanded credits with source descriptions
-- Communication Patterns table in README now includes all communication patterns
+### Geändert
+- Musteranzahl: 23 → 30 Kategorien
+- `README.md` – Musteranzahl aktualisiert, Meta-Muster-Tabelle ergänzt, Credits um Quellenbeschreibungen erweitert
+- Die Communication-Patterns-Tabelle in der README enthält nun alle Kommunikationsmuster
 
 ---
 
 ## [2.0.0] — 2026-03-18
 
-### Added
-- **Tiered vocabulary system** — words are now organized into three tiers based on AI-signal strength:
-  - Tier 1 (always flag): 53 entries — dead giveaways that appear 5–20x more often in AI text
-  - Tier 2 (flag in clusters): 38 entries — legitimate words that signal AI when 2+ appear in the same paragraph
-  - Tier 3 (flag by density): 11 entries — common words that only flag when the text is saturated with them
-- 39 new vocabulary entries across all tiers, including: bustling, intricate, complexities, ever-evolving, daunting, holistic, actionable, impactful, learnings, thought leadership, best practices, synergy, interplay, encompass, catalyze, reimagine, galvanize, augment, cultivate, illuminate, elucidate, juxtapose, paradigm-shifting, transformative, cornerstone, paramount, poised, burgeoning, nascent, quintessential, overarching, underpinning, significant, innovative, dynamic, scalable, compelling, unprecedented, sophisticated, instrumental, world-class
-- Credit to [brandonwise/humanizer](https://github.com/brandonwise/humanizer) for tiered vocabulary research
+### Hinzugefügt
+- **Tiered-Vokabel-System** – Wörter sind nun nach KI-Signalstärke in drei Stufen geordnet:
+  - Tier 1 (immer flaggen): 53 Einträge – eindeutige Verräter, die im KI-Text 5- bis 20-mal häufiger auftauchen
+  - Tier 2 (im Cluster flaggen): 38 Einträge – legitime Wörter, die KI signalisieren, wenn 2+ im selben Absatz auftreten
+  - Tier 3 (nach Dichte flaggen): 11 Einträge – gängige Wörter, die nur flaggen, wenn der Text mit ihnen gesättigt ist
+- 39 neue Vokabeleinträge über alle Stufen, darunter: pulsierend, verschlungen, Komplexitäten, sich stetig entwickelnd, entmutigend, ganzheitlich, umsetzbar, wirkungsvoll, Erkenntnisse, Thought Leadership, Best Practices, Synergie, Wechselspiel, umfassen, katalysieren, neu denken, beleben, ergänzen, kultivieren, erleuchten, erläutern, gegenüberstellen, paradigmenverschiebend, transformativ, Eckpfeiler, von grösster Bedeutung, bereit, aufkeimend, im Entstehen, par excellence, übergeordnet, untermauernd, bedeutend, innovativ, dynamisch, skalierbar, überzeugend, beispiellos, ausgeklügelt, weltklasse
+- Dank an [brandonwise/humanizer](https://github.com/brandonwise/humanizer) für die Tiered-Vokabel-Recherche
 
-### Changed
-- Word/phrase table reorganized from flat list to tiered structure with usage guidance
-- Total vocabulary: 58 → 102 entries (53 Tier 1 + 38 Tier 2 + 11 Tier 3)
-- `README.md` — updated replacement table description, pattern table, and credits
+### Geändert
+- Wort-/Phrasen-Tabelle von einer flachen Liste in eine gestufte Struktur mit Nutzungshinweisen umorganisiert
+- Vokabular gesamt: 58 → 102 Einträge (53 Tier 1 + 38 Tier 2 + 11 Tier 3)
+- `README.md` – Beschreibung der Ersetzungstabelle, Muster-Tabelle und Credits aktualisiert
 
 ---
 
 ## [1.4.0] — 2026-03-17
 
-### Added
-- 15 new word/phrase replacements: nuanced, crucial, multifaceted, ecosystem, myriad, plethora, deep dive/dive into, unpack, bolster, spearhead, resonate, revolutionize, facilitate, underpin
-- New pattern category: "let's" constructions (false-collaborative openers like "let's explore," "let's break this down")
-- Skill now covers 23 pattern categories with 58 word/phrase replacements
+### Hinzugefügt
+- 15 neue Wort-/Phrasen-Ersetzungen: nuanciert, entscheidend, vielschichtig, Ökosystem, Myriade, Fülle, Deep Dive / eintauchen, aufschlüsseln, stärken, vorantreiben, nachhallen, revolutionieren, erleichtern, untermauern
+- Neue Musterkategorie: „Lass uns"-Konstruktionen (falsch-kollaborative Opener wie „lass uns erkunden", „lass uns das aufschlüsseln")
+- Das Skill deckt nun 23 Musterkategorien mit 58 Wort-/Phrasen-Ersetzungen ab
 
-### Changed
-- Deduplicated filler phrases that appeared in both the word table and the filler section
-- `README.md` — updated pattern count (22 → 23), replacement table count (43 → 58), added "let's" constructions row to pattern table
+### Geändert
+- Doppelte Füllphrasen entfernt, die sowohl in der Wort-Tabelle als auch im Füller-Abschnitt standen
+- `README.md` – Musteranzahl aktualisiert (22 → 23), Anzahl der Ersetzungstabelle (43 → 58), Zeile zu „Lass uns"-Konstruktionen in der Muster-Tabelle ergänzt
 
 ---
 
 ## [1.3.0] — 2026-03-17
 
-### Changed
-- Em dash detection now catches double-hyphen (`--`) in addition to Unicode em dash (`—`)
-- `README.md` — updated formatting pattern description to mention `--`
+### Geändert
+- Die Gedankenstrich-Erkennung erfasst nun zusätzlich zum Unicode-Geviertstrich (`—`) auch den doppelten Bindestrich (`--`)
+- `README.md` – Beschreibung des Formatierungsmusters aktualisiert, erwähnt nun `--`
 
 ---
 
 ## [1.2.0] — 2026-03-06
 
-### Added
-- New pattern category: emotional flatline (AI claims emotions as structural crutch without conveying them; also flags lazy human writing)
-- Skill now covers 22 pattern categories with 43 word/phrase replacements
+### Hinzugefügt
+- Neue Musterkategorie: emotionaler Flatline (KI behauptet Gefühle als strukturelle Krücke, ohne sie zu vermitteln; flaggt auch faules menschliches Schreiben)
+- Das Skill deckt nun 22 Musterkategorien mit 43 Wort-/Phrasen-Ersetzungen ab
 
 ---
 
 ## [1.1.0] — 2026-03-06
 
-### Added
-- 8 new pattern categories: notability name-dropping, superficial -ing analyses, promotional language, formulaic challenges, false ranges, inline-header lists, title case headings, cutoff disclaimers
-- 5 new word table entries (nestled, vibrant, thriving, despite challenges, showcasing)
-- Skill now covers 21 pattern categories with 43 word/phrase replacements
+### Hinzugefügt
+- 8 neue Musterkategorien: Prominenz-Namedropping, oberflächliche -ing-Analysen, werbliche Sprache, formelhafte Herausforderungen, falsche Bandbreiten, Inline-Überschriften-Listen, Title-Case-Überschriften, Cutoff-Disclaimer
+- 5 neue Einträge in der Wort-Tabelle (eingebettet, lebendig, florierend, trotz Herausforderungen, präsentierend)
+- Das Skill deckt nun 21 Musterkategorien mit 43 Wort-/Phrasen-Ersetzungen ab
 
-### Changed
-- `README.md` — expanded full example (6 paragraphs → 4 clean sentences, 40+ tells flagged); added per-pattern before/after table organized into Content, Language, Structure, Communication groups; updated pattern count and replacement table count throughout
+### Geändert
+- `README.md` – vollständiges Beispiel erweitert (6 Absätze → 4 saubere Sätze, 40+ geflaggte Tells); Vorher/Nachher-Tabelle pro Muster ergänzt, gegliedert in die Gruppen Content, Language, Structure, Communication; Musteranzahl und Anzahl der Ersetzungstabelle durchgehend aktualisiert
 
 ---
 
 ## [1.0.0] — 2026-03-05
 
-### Added
-- `SKILL.md` — Claude Code skill with 13 pattern categories: formatting, sentence structure, word/phrase replacements (38 entries), template phrases, transition phrases, structural issues, significance inflation, copula avoidance, synonym cycling, vague attributions, filler phrases, generic conclusions, chatbot artifacts
-- Four-section output format: issues found, rewritten version, what changed, second-pass audit
-- `README.md` — installation guide (3 methods), full pattern reference, usage examples
-- `LICENSE` — MIT
-- `.gitignore` — OS/editor exclusions
+### Hinzugefügt
+- `SKILL.md` – Claude-Code-Skill mit 13 Musterkategorien: Formatierung, Satzbau, Wort-/Phrasen-Ersetzungen (38 Einträge), Vorlagen-Phrasen, Übergangs-Phrasen, strukturelle Probleme, Bedeutungs-Inflation, Kopula-Vermeidung, Synonym-Wechsel, vage Attributionen, Füllphrasen, generische Schlüsse, Chatbot-Artefakte
+- Vierteiliges Output-Format: gefundene Probleme, umgeschriebene Fassung, was geändert wurde, Zweitdurchlauf-Prüfung
+- `README.md` – Installationsanleitung (3 Methoden), vollständige Muster-Referenz, Nutzungsbeispiele
+- `LICENSE` – MIT
+- `.gitignore` – OS-/Editor-Ausschlüsse

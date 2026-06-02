@@ -1,11 +1,11 @@
 {
   "name": "avoid-ai-writing-detector",
-  "version": "3.4.0",
-  "description": "Deterministic detection engine for the Avoid AI Writing skill — 43-category pattern + stylometric analysis of AI-generated text.",
+  "version": "4.0.0",
+  "description": "Deterministische Detektor-Engine fuer das Skill Avoid AI Writing – Muster- und Stylometrie-Analyse (43 Kategorien) deutscher KI-Texte in Schweizer Schreibweise.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/conorbronsdon/avoid-ai-writing.git"
+    "url": "https://github.com/gardenbaum/avoid-ai-writing.git"
   },
   "main": "detector/patterns.js",
   "files": [

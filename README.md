@@ -2,348 +2,358 @@
 
 # avoid-ai-writing
 
-Audit & rewrite content to remove AI writing patterns. A practical skill for any AI agent. Supports detect-only and edit-in-place modes, plus voice profiles.
+Prüft Texte auf KI-Schreibmuster und schreibt sie um. Ein praxistaugliches Skill für jeden KI-Agenten. Unterstützt einen Nur-Prüfen-Modus, einen In-Place-Bearbeiten-Modus und Voice-Profile. Deutsch in Schweizer Schreibweise.
 
-[![GitHub stars](https://img.shields.io/github/stars/conorbronsdon/avoid-ai-writing?style=social)](https://github.com/conorbronsdon/avoid-ai-writing/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/gardenbaum/avoid-ai-writing?style=social)](https://github.com/gardenbaum/avoid-ai-writing/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![X](https://img.shields.io/badge/X-@ConorBronsdon-black?style=flat-square&logo=x)](https://x.com/ConorBronsdon)
 </div>
 
 ---
 
 
-A portable writing skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenClaw](https://github.com/openclaw/openclaw), [Hermes](https://github.com/NousResearch/hermes-agent), and any other [agentskills.io](https://agentskills.io)-compatible agent. Audits and rewrites content to remove AI writing patterns ("AI-isms").
+Ein portables Schreib-Skill für [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenClaw](https://github.com/openclaw/openclaw), [Hermes](https://github.com/NousResearch/hermes-agent) und jeden anderen [agentskills.io](https://agentskills.io)-kompatiblen Agenten. Prüft Texte auf deutsche KI-Schreibmuster („KI-Floskeln") und schreibt sie um.
 
-**Three modes:**
-- **Rewrite** (default) — flags AI patterns and rewrites the text to fix them. A built-in second pass catches patterns that survived the first edit.
-- **Detect** — flags AI patterns without rewriting. Shows which flags are real problems vs. judgment calls. Useful when patterns might be intentional, when auditing content you don't want altered, or when you just want a quick scan.
-- **Edit** — edits a file in place (via the Edit tool) with minimal, targeted changes, preserving passages that are already human. Returns an edits-made + verification report, not the full file.
+**Sprache.** Dies ist die deutsche Portierung in Schweizer Schreibweise (durchgängig `ss`, kein Eszett). KI-Schreib-Tells sind sprachspezifisch: deutsche LLM-Ausgaben haben eigene Floskeln, und mehrere englisch-kalibrierte Regeln gelten im Deutschen gar nicht. Darum sind Vokabular und Muster aus recherchierten deutschen Tells aufgebaut, nicht aus dem Englischen übersetzt. Der Halbgeviertstrich (–, mit Leerzeichen) gilt als korrekte deutsche Zeichensetzung; das Tell ist der englische Geviertstrich (—). Die deutschen Anführungszeichen („ ") und die Guillemets (« ») werden nie geflaggt.
 
-An optional **voice profile** (casual / professional / technical / warm / blunt) sets how the prose should sound, independent of the audience context profile.
+**Drei Modi:**
+- **Rewrite** (Standard) — markiert KI-Muster und schreibt den Text korrigierend um. Ein eingebauter zweiter Durchlauf fängt Muster, die den ersten Edit überlebt haben.
+- **Detect** — markiert KI-Muster, ohne umzuschreiben. Zeigt, welche Treffer echte Probleme sind und welche Ermessensfälle. Nützlich, wenn Muster beabsichtigt sein könnten, wenn du Inhalte prüfst, die du nicht verändern willst, oder wenn du nur einen schnellen Scan brauchst.
+- **Edit** — bearbeitet eine Datei direkt (über das Edit-Tool) mit minimalen, gezielten Änderungen und lässt schon menschliche Passagen unangetastet. Liefert einen Vorgenommene-Änderungen-plus-Verifizierung-Bericht, nicht die ganze Datei.
 
-## Quick demo
+Ein optionales **Voice-Profil** (casual / professional / technical / warm / blunt) legt fest, wie die Prosa klingen soll – unabhängig vom Publikums-Kontextprofil.
+
+## Quick-Demo
 
 **Input:**
-> Certainly! Acme Analytics, a vibrant startup nestled in the heart of Boulder's thriving tech ecosystem, has secured $40M in Series B funding — marking a watershed moment for the observability landscape. The platform serves as a unified hub, featuring real-time dashboards, boasting sub-second queries, and presenting a seamless integration layer. Moreover, experts believe Acme is poised to disrupt the market. In conclusion, the future looks bright!
+> Gerne! Acme Analytics, ein pulsierendes Start-up, eingebettet im florierenden Tech-Ökosystem von Zürich, hat 40 Mio. CHF in einer Series-B-Finanzierung gesichert — ein wahrer Wendepunkt für die Observability-Landschaft. Die Plattform dient als zentrale Drehscheibe, verfügt über Echtzeit-Dashboards, bietet Abfragen im Sub-Sekunden-Bereich und präsentiert eine nahtlose Integrationsschicht. Darüber hinaus sind sich Experten einig, dass Acme den Markt umkrempeln dürfte. Zusammenfassend lässt sich sagen: Die Zukunft sieht rosig aus!
 
 **Output:**
-> Acme Analytics raised a $40M Series B led by Sequoia. The Boulder-based startup makes an observability platform that runs queries in under a second and plugs into existing monitoring stacks without custom integration work.
+> Acme Analytics hat eine Series B über 40 Mio. CHF abgeschlossen, angeführt von Lakestar. Das Zürcher Start-up baut eine Observability-Plattform, die Abfragen in unter einer Sekunde beantwortet und sich ohne eigene Integrationsarbeit an bestehende Monitoring-Stacks anschliesst.
 
-**What it caught:** chatbot opener ("Certainly!"), promotional language ("vibrant," "nestled," "thriving"), significance inflation ("watershed moment"), copula avoidance ("serves as," "featuring," "boasting"), 4 word replacements, vague attribution ("experts believe"), filler ("Moreover"), generic conclusion ("the future looks bright"), over-polished uniformity. 15+ AI tells in one paragraph.
+**Was es gefangen hat:** Chatbot-Opener („Gerne!"), Werbesprache („pulsierend", „eingebettet", „florierend"), Bedeutungs-Aufblähung („ein wahrer Wendepunkt"), Kopula-Vermeidung („dient als", „verfügt über", „bietet", „präsentiert"), Tier-1-Vokabel („nahtlos"), Ökosystem-Metapher, vage Quellenangabe („Experten sind sich einig"), Übergangsfloskel („Darüber hinaus"), generischer Schluss („Zusammenfassend lässt sich sagen", „Die Zukunft sieht rosig aus"). Über 12 KI-Tells in einem Absatz.
 
-## Why a skill, not just a prompt
+## Warum ein Skill, nicht nur ein Prompt
 
-A one-shot "make this sound human" prompt catches the obvious stuff. This skill is different:
+Ein einmaliger „mach das menschlicher"-Prompt fängt das Offensichtliche. Dieses Skill geht weiter:
 
-- **Structured audit** — returns identified issues with quoted text, the rewrite, a change summary, and a second-pass audit in four discrete sections. You see exactly what changed and why.
-- **Two-pass detection** — the second pass re-reads the rewrite and catches patterns that survive the first edit: recycled transitions, lingering inflation, copula swaps that snuck through.
-- **109-entry word replacement table across 3 tiers + 10 Tier 3 phrases** — not vibes-based. Every flagged word has a specific, plainer alternative. "Leverage" → "use." "Commence" → "start." Tier 1 words always flag, Tier 2 words flag when they cluster, Tier 3 words flag only at high density. Tier 3 *phrases* (multi-word boilerplate like "the integration of," "decentralized compute") flag on per-phrase repetition or when 3+ distinct phrases stack in one piece — the LLM-self-varies-boilerplate shape.
-- **47 pattern categories** — representative examples below, each with before/after. Includes structural detection (hashtag stuffing, bare-NP bullet lists, hedge-stacked predictions), AI-tool fingerprints (placeholders, citation markup, UTM params), rhythm/uniformity checks, and writer-side tests. The full catalog lives in [`SKILL.md`](./SKILL.md); this count is enforced against it in CI.
-- **Detect mode** — flag patterns without rewriting. See which flags are real problems vs. judgment calls. Useful when patterns might be intentional or you're auditing content you don't want altered.
-- **Works across platforms** — one `SKILL.md` runs in Claude Code, Cowork (as a plugin), OpenClaw, and Cursor (as a ported rule). See the install paths below.
+- **Strukturiertes Audit** — liefert die gefundenen Probleme mit zitierter Stelle, die Umschreibung, eine Diff-Zusammenfassung und einen zweiten Prüf-Durchlauf in vier getrennten Abschnitten. Du siehst genau, was sich geändert hat und warum.
+- **Zwei-Durchlauf-Erkennung** — der zweite Durchlauf liest die Umschreibung erneut und fängt Muster, die den ersten Edit überleben: recycelte Übergänge, anhaltende Aufblähung, durchgerutschte Kopula-Vermeidung.
+- **Wort-Ersetzungstabelle über 3 Stufen plus Tier-3-Phrasen** — nicht aus dem Bauch. Jedes geflaggte Wort hat eine konkrete, schlichtere Alternative. „Nahtlos" → „reibungslos". „Eintauchen" → „anschauen". Tier-1-Wörter flaggen immer, Tier-2-Wörter im Cluster, Tier-3-Wörter nur bei hoher Dichte. Tier-3-*Phrasen* (Mehrwort-Boilerplate wie „die Integration von", „dezentrale Rechenleistung") flaggen bei Wiederholung pro Phrase oder wenn drei oder mehr verschiedene Phrasen sich in einem Text stapeln – die Form, die LLMs annehmen, wenn sie ihre eigene Boilerplate variieren.
+- **47 Muster-Kategorien** — repräsentative Beispiele unten, jedes mit Vorher/Nachher. Enthält strukturelle Erkennung (Hashtag-Stopfen, Aufzählungen aus blossen Nominalphrasen, gestapelte Absicherungen in Prognosen), KI-Tool-Fingerabdrücke (Platzhalter, Zitations-Markup, UTM-Parameter), Rhythmus-/Gleichförmigkeits-Checks sowie deutsche Zusatzregeln (Nominalstil/Funktionsverbgefüge, Passivlastigkeit). Der vollständige Katalog steht in [`SKILL.md`](./SKILL.md); diese Zahl wird in der CI gegen ihn geprüft.
+- **Detect-Modus** — Muster markieren, ohne umzuschreiben. Sehen, welche Treffer echte Probleme sind und welche Ermessensfälle. Nützlich, wenn Muster beabsichtigt sein könnten oder du Inhalte prüfst, die du nicht verändern willst.
+- **Plattformübergreifend** — ein einziges `SKILL.md` läuft in Claude Code, Cowork (als Plugin), OpenClaw und Cursor (als portierte Rule). Siehe die Install-Pfade unten.
 
-## Installation & Usage
+## Installation & Nutzung
 
 ### Claude Code
 
-**Option 1: Clone into skills directory**
+**Option 1: Ins Skills-Verzeichnis klonen**
 
 ```bash
-git clone https://github.com/conorbronsdon/avoid-ai-writing ~/.claude/skills/avoid-ai-writing
+git clone https://github.com/gardenbaum/avoid-ai-writing ~/.claude/skills/avoid-ai-writing
 ```
 
-**Option 2: Copy the file directly**
+**Option 2: Die Datei direkt kopieren**
 
-Download `SKILL.md` and place it in any directory that Claude Code can read. Reference it in your `CLAUDE.md`:
+Lade `SKILL.md` herunter und lege sie in ein beliebiges Verzeichnis, das Claude Code lesen kann. Verweise in deiner `CLAUDE.md` darauf:
 
 ```markdown
-- Editing for AI patterns → read `path/to/avoid-ai-writing/SKILL.md`
+- Auf KI-Muster redigieren → lies `path/to/avoid-ai-writing/SKILL.md`
 ```
 
-**Option 3: Use as a slash command**
+**Option 3: Als Slash-Command nutzen**
 
-Create a command file (e.g., `~/.claude/commands/clean-ai-writing.md`):
+Lege eine Command-Datei an (z. B. `~/.claude/commands/clean-ai-writing.md`):
 
 ```markdown
 ---
-description: Audit and rewrite content to remove AI writing patterns
+description: Texte auf KI-Schreibmuster prüfen und umschreiben
 ---
 
 $ARGUMENTS
 
-Read and follow the instructions in ~/.claude/skills/avoid-ai-writing/SKILL.md
+Lies und befolge die Anweisungen in ~/.claude/skills/avoid-ai-writing/SKILL.md
 ```
 
-Then use `/clean-ai-writing <your text>` in Claude Code.
+Dann nutze `/clean-ai-writing <dein Text>` in Claude Code.
 
-### Claude Cowork — install as a plugin
+### Claude Cowork — als Plugin installieren
 
-[Cowork](https://www.anthropic.com/cowork) loads skills only from **installed plugins** — it doesn't scan `~/.claude/skills/`, so a bare clone (the Claude Code steps above) won't be discovered there. This repo doubles as a single-plugin [marketplace](https://code.claude.com/docs/en/plugin-marketplaces), so install it as a plugin instead:
+[Cowork](https://www.anthropic.com/cowork) lädt Skills nur aus **installierten Plugins** – es scannt `~/.claude/skills/` nicht, ein blosser Clone (die Claude-Code-Schritte oben) wird dort also nicht gefunden. Dieses Repo ist zugleich ein Einzel-Plugin-[Marketplace](https://code.claude.com/docs/en/plugin-marketplaces), darum installiere es stattdessen als Plugin:
 
 ```bash
-/plugin marketplace add conorbronsdon/avoid-ai-writing
-/plugin install avoid-ai-writing@conorbronsdon-skills
-/reload-plugins   # or restart the session, to activate the skill
+/plugin marketplace add gardenbaum/avoid-ai-writing
+/plugin install avoid-ai-writing@gardenbaum-skills
+/reload-plugins   # oder die Session neu starten, um das Skill zu aktivieren
 ```
 
-In the Cowork desktop app, do the same from **Customize → Plugins → Add marketplace from GitHub** (`conorbronsdon/avoid-ai-writing`), then install **avoid-ai-writing**. The skill auto-triggers from phrases like "remove AI-isms." New releases arrive when the plugin's version is bumped — run `/plugin marketplace update` to pull them.
+In der Cowork-Desktop-App gehst du gleich vor über **Customize → Plugins → Add marketplace from GitHub** (`gardenbaum/avoid-ai-writing`) und installierst dann **avoid-ai-writing**. Das Skill löst automatisch aus bei Formulierungen wie „entferne KI-Floskeln". Neue Releases kommen, wenn die Plugin-Version erhöht wird – führe `/plugin marketplace update` aus, um sie zu holen.
 
-The same plugin install works in Claude Code if you'd rather have a versioned, updatable plugin than the file clone above.
+Dieselbe Plugin-Installation funktioniert auch in Claude Code, wenn du lieber ein versioniertes, aktualisierbares Plugin hast als den Datei-Clone oben.
 
-> Prefer not to install a plugin? Copy `SKILL.md` into a folder connected to your Cowork session and tell the agent to follow `./SKILL.md` — works as a one-off, no auto-trigger.
+> Lieber kein Plugin installieren? Kopiere `SKILL.md` in einen Ordner, der mit deiner Cowork-Session verbunden ist, und weise den Agenten an, `./SKILL.md` zu befolgen – funktioniert als Einmal-Nutzung, ohne Auto-Trigger.
 
 ### OpenClaw
 
-**Option 1: [Install from ClawHub](https://clawhub.ai/conorbronsdon/avoid-ai-writing)**
+**Option 1: [Aus ClawHub installieren](https://clawhub.ai/gardenbaum/avoid-ai-writing)**
 
 ```bash
 clawhub install avoid-ai-writing
 ```
 
-**Option 2: Clone into skills directory**
+**Option 2: Ins Skills-Verzeichnis klonen**
 
 ```bash
-git clone https://github.com/conorbronsdon/avoid-ai-writing ~/.openclaw/skills/avoid-ai-writing
+git clone https://github.com/gardenbaum/avoid-ai-writing ~/.openclaw/skills/avoid-ai-writing
 ```
 
 ### Cursor
 
-Drop the ported rule into your project's `.cursor/rules/`:
+Lege die portierte Rule in das `.cursor/rules/` deines Projekts:
 
 ```bash
 mkdir -p .cursor/rules
 curl -o .cursor/rules/avoid-ai-writing.mdc \
-  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/cursor-rules/avoid-ai-writing.mdc
+  https://raw.githubusercontent.com/gardenbaum/avoid-ai-writing/main/cursor-rules/avoid-ai-writing.mdc
 ```
 
-See [`cursor-rules/README.md`](./cursor-rules/README.md) for activation globs and trigger phrases. Functionally identical to the Claude Code skill — same tier vocabulary, same context profiles, same modes.
+Siehe [`cursor-rules/README.md`](./cursor-rules/README.md) für Aktivierungs-Globs und Trigger-Phrasen. Funktional identisch mit dem Claude-Code-Skill – gleicher Stufen-Wortschatz, gleiche Context-Profile, gleiche Modi.
 
 ### Hermes
 
-Drop the skill into Hermes's skills directory — it then appears automatically as `/avoid-ai-writing`, no registration needed:
+Lege das Skill in das Skills-Verzeichnis von Hermes – es erscheint dann automatisch als `/avoid-ai-writing`, ohne Registrierung:
 
 ```bash
 mkdir -p ~/.hermes/skills/writing/avoid-ai-writing
 curl -o ~/.hermes/skills/writing/avoid-ai-writing/SKILL.md \
-  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/SKILL.md
+  https://raw.githubusercontent.com/gardenbaum/avoid-ai-writing/main/SKILL.md
 ```
 
 ### OpenAI Codex
 
-Codex reads [Agent Skills](https://developers.openai.com/codex/skills) in the same `SKILL.md` format. Put it in `.agents/skills/` at the repo root, or `~/.agents/skills/` to use it across all your projects:
+Codex liest [Agent Skills](https://developers.openai.com/codex/skills) im selben `SKILL.md`-Format. Lege es in `.agents/skills/` im Repo-Root ab oder in `~/.agents/skills/`, um es über alle Projekte hinweg zu nutzen:
 
 ```bash
 mkdir -p .agents/skills/avoid-ai-writing
 curl -o .agents/skills/avoid-ai-writing/SKILL.md \
-  https://raw.githubusercontent.com/conorbronsdon/avoid-ai-writing/main/SKILL.md
+  https://raw.githubusercontent.com/gardenbaum/avoid-ai-writing/main/SKILL.md
 ```
 
-### Other agents
+### Andere Agenten
 
-The same `SKILL.md` (or the Cursor `.mdc` port) drops into most tools' rules/skills location:
+Dasselbe `SKILL.md` (oder der Cursor-`.mdc`-Port) lässt sich in den meisten Tools an deren Rules-/Skills-Ort ablegen:
 
-| Tool | Where to put it |
+| Tool | Wohin damit |
 |------|-----------------|
 | **Windsurf** | `.windsurf/rules/avoid-ai-writing.md` |
 | **Cline** | `.clinerules/avoid-ai-writing.md` |
-| **GitHub Copilot** (VS Code) | paste into `.github/copilot-instructions.md` |
-| **Claude.ai Projects** | paste `SKILL.md` into the project's custom instructions |
-| **ChatGPT Custom GPTs** | paste `SKILL.md` into the GPT's Instructions field |
+| **GitHub Copilot** (VS Code) | in `.github/copilot-instructions.md` einfügen |
+| **Claude.ai Projects** | `SKILL.md` in die Custom Instructions des Projekts einfügen |
+| **ChatGPT Custom GPTs** | `SKILL.md` in das Instructions-Feld des GPT einfügen |
 
-### Triggering the skill
+### Das Skill auslösen
 
-Once installed, ask your assistant to clean up AI writing:
+Einmal installiert, bitte deinen Assistenten, KI-Schreibe aufzuräumen:
 
-- "Remove AI-isms from this post"
-- "Audit this draft for AI tells"
-- "Make this sound less like AI"
-- "Clean up AI writing in this paragraph"
+- „Entferne die KI-Floskeln aus diesem Post"
+- „Prüfe diesen Entwurf auf KI-Tells"
+- „Mach das weniger nach KI klingend"
+- „Räum die KI-Schreibe in diesem Absatz auf"
 
-In **rewrite mode** (default), the skill returns four sections:
+Im **Rewrite-Modus** (Standard) liefert das Skill vier Abschnitte:
 
-1. **Issues found** — every AI-ism identified, with the text quoted
-2. **Rewritten version** — clean version with all AI-isms removed
-3. **What changed** — summary of the major edits
-4. **Second-pass audit** — re-reads the rewrite and catches any surviving tells
+1. **Gefundene Probleme** — jede gefundene KI-Floskel, mit zitierter Stelle
+2. **Umgeschriebene Fassung** — saubere Version ohne KI-Floskeln
+3. **Was sich geändert hat** — Zusammenfassung der wesentlichen Änderungen
+4. **Zweiter Prüf-Durchlauf** — liest die Umschreibung erneut und fängt verbliebene Tells
 
-In **detect mode**, the skill returns two sections:
+Im **Detect-Modus** liefert das Skill zwei Abschnitte:
 
-1. **Issues found** — every AI-ism identified, grouped by severity (P0/P1/P2)
-2. **Assessment** — which flags are clear problems vs. patterns that may be intentional or effective in context
+1. **Gefundene Probleme** — jede gefundene KI-Floskel, nach Schwere gruppiert (P0/P1/P2)
+2. **Einschätzung** — welche Treffer klare Probleme sind und welche bewusst oder im Kontext wirksam sein könnten
 
-Trigger detect mode with: "detect," "flag only," "audit only," "just flag," "scan," or similar.
+Löse den Detect-Modus aus mit: „prüfen", „nur markieren", „nur auditieren", „nur flaggen", „scannen" oder Ähnlichem.
 
-## Pattern reference
+## Muster-Referenz
 
-> Representative examples from the catalog — not the exhaustive list (that's [`SKILL.md`](./SKILL.md)). The skill's human-facing prose catalog and the [detector engine](./detector/) use **different counts on purpose**: the engine implements 43 `type` categories because it splits the vocabulary tiers and adds stylometric/fingerprint signals (punctuation distribution, function-word entropy, bypass-trick detection) that work as math over a document rather than as a rule you'd look up. The two are mapped in [`detector/CATEGORIES.md`](./detector/CATEGORIES.md); don't "fix" one count to match the other.
+> Repräsentative Beispiele aus dem Katalog – nicht die vollständige Liste (die steht in [`SKILL.md`](./SKILL.md)). Die menschenlesbare Prosa-Liste des Skills und die [Detector-Engine](./detector/) nutzen **bewusst unterschiedliche Zahlen**: die Engine implementiert 43 `type`-Kategorien, weil sie die Vokabel-Stufen aufteilt und stylometrische/Fingerabdruck-Signale ergänzt (Zeichensetzungs-Verteilung, Funktionswort-Entropie, Bypass-Trick-Erkennung), die als Mathematik über ein Dokument funktionieren statt als nachschlagbare Regel. Die beiden werden in [`detector/CATEGORIES.md`](./detector/CATEGORIES.md) aufeinander abgebildet; „korrigiere" nicht die eine Zahl auf die andere.
 
-### Content Patterns
+### Inhalts-Muster
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 1 | **Significance inflation** | "marking a pivotal moment in the evolution of..." | "was founded in 2019 to solve X" |
-| 2 | **Notability name-dropping** | "cited in NYT, BBC, and Wired" | "In a 2024 NYT interview, she argued..." |
-| 3 | **Superficial -ing analyses** | "symbolizing... reflecting... showcasing..." | Replace with specific facts or cut |
-| 4 | **Promotional language** | "nestled within the breathtaking region" | "is a town in the Gonder region" |
-| 5 | **Vague attributions** | "Experts believe it plays a crucial role" | "according to a 2019 survey by Gartner" |
-| 6 | **Formulaic challenges** | "Despite challenges... continues to thrive" | Name the challenge and the response |
-| 7 | **Novelty inflation** | "He introduced a term I hadn't heard before" | "He walked through how X works in practice" |
+| 1 | **Bedeutungs-Aufblähung** | „markiert einen Wendepunkt in der Entwicklung von…" | „2019 gegründet, um X zu lösen" |
+| 2 | **Prominenz-Namedropping** | „zitiert in NZZ, SRF und Tages-Anzeiger" | „In einem NZZ-Interview von 2024 argumentierte sie…" |
+| 3 | **Oberflächliche Partizip-Analysen** | „symbolisierend… widerspiegelnd… aufzeigend…" | Durch konkrete Fakten ersetzen oder streichen |
+| 4 | **Werbesprache** | „eingebettet in die atemberaubende Region" | „ist ein Dorf in der Region Gonder" |
+| 5 | **Vage Quellenangaben** | „Experten glauben, es spiele eine entscheidende Rolle" | „laut einer Erhebung des SECO von 2024" |
+| 6 | **Schablonenhafte Herausforderungen** | „Trotz Herausforderungen floriert es weiter" | Die konkrete Herausforderung und Antwort nennen |
+| 7 | **Neuheits-Aufblähung** | „Sie führte einen Begriff ein, den ich nicht kannte" | „Sie zeigte, wie X in der Praxis funktioniert" |
 
-### Language Patterns
+### Sprach-Muster
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 8 | **Word/phrase replacements (3 tiers)** | "leverage... robust... seamless... utilize" | "use... reliable... smooth... use" |
-| 9 | **Copula avoidance** | "serves as... features... boasts" | "is... has" |
-| 10 | **Synonym cycling** | "developers... engineers... practitioners... builders" | "developers" (repeat the clear word) |
-| 11 | **Template phrases** | "a [adj] step towards [adj] infrastructure" | Describe the specific outcome |
-| 12 | **Filler phrases** | "In order to," "Due to the fact that" | "To," "Because" |
-| 13 | **False ranges** | "from the Big Bang to dark matter" | List the actual topics |
-| 14 | **Parenthetical hedging** | "tools (like X and Y)" | Name them directly or cut |
+| 8 | **Wort-/Phrasen-Ersetzungen (3 Stufen)** | „nahtlos… robust… mühelos… eintauchen" | „reibungslos… stabil… einfach… anschauen" |
+| 9 | **Kopula-Vermeidung** | „dient als… verfügt über… präsentiert" | „ist… hat" |
+| 10 | **Synonym-Wechsel** | „Entwickler… Ingenieurinnen… Fachleute… Bauende" | „Entwickler" (das klare Wort wiederholen) |
+| 11 | **Template-Phrasen** | „ein [Adj.] Schritt in Richtung [Adj.] Infrastruktur" | Das konkrete Ergebnis beschreiben |
+| 12 | **Füllphrasen** | „Im Hinblick auf", „Es ist wichtig zu beachten, dass" | „Bei", direkt die Aussage machen |
+| 13 | **Falsche Spannweiten** | „vom Urknall bis zur dunklen Materie" | Die tatsächlichen Themen auflisten |
+| 14 | **Parenthetisches Absichern** | „(und zunehmend auch für kleinere Betriebe)" | Direkt nennen oder streichen |
 
-### Structure Patterns
+### Struktur-Muster
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 15 | **Formatting** | Em dashes (— and --), bold overuse, emoji headers, bullet-heavy | Commas/periods, prose paragraphs |
-| 16 | **Sentence structure** | "It's not X, it's Y" + hollow intensifiers + hedging | Direct positive statements |
-| 17 | **Structural issues** | Uniform paragraphs, formulaic openings, too-clean grammar | Varied length, lead with the point |
-| 18 | **Transition phrases** | "Moreover," "Furthermore," "In today's [X]" | "and," "also," or restructure |
-| 19 | **Inline-header lists** | "**Speed:** Speed improved by..." | Write the point directly |
-| 20 | **Title case headings** | "Strategic Negotiations And Partnerships" | "Strategic negotiations and partnerships" |
-| 21 | **Numbered list inflation** | "Here are 7 reasons why..." | Cut to the 2-3 that matter |
-| 22 | **False concession** | "While X has limitations, it's still remarkable" | State the real tradeoff |
-| 23 | **Rhetorical question openers** | "What if there were a better way to...?" | Lead with the claim |
+| 15 | **Formatierung** | Geviertstriche (— und --), Fett-Überladung, Emoji-Header, aufzählungslastig | Kommas/Punkte, Fliesstext-Absätze |
+| 16 | **Satzstruktur** | „Es ist nicht X — es ist Y" plus hohle Verstärker plus Absicherungen | Direkte positive Aussagen |
+| 17 | **Strukturelle Probleme** | Gleichförmige Absätze, schablonenhafte Einstiege, verdächtig saubere Grammatik | Variierte Länge, mit dem Punkt führen |
+| 18 | **Übergangsphrasen** | „Darüber hinaus", „Des Weiteren", „In der heutigen [X]" | „und", „auch" oder umstrukturieren |
+| 19 | **Inline-Header-Listen** | „**Leistung:** Die Leistung verbesserte sich um…" | Den Punkt direkt schreiben |
+| 20 | **Nominalstil und Funktionsverbgefüge** | „zur Verfügung stellen", „die Durchführung von Tests" | „geben", „Tests durchführen" |
+| 21 | **Nummerierte-Listen-Aufblähung** | „Hier sind 7 Gründe, warum…" | Auf die 2–3 kürzen, die zählen |
+| 22 | **Falsche Zugeständnis-Struktur** | „Zwar ist X beeindruckend, doch es bleibt bemerkenswert" | Den echten Tradeoff benennen |
+| 23 | **Rhetorische Frage-Einstiege** | „Aber was bedeutet das für dich?" | Mit der Aussage führen |
 
-### Communication Patterns
+### Kommunikations-Muster
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 24 | **Chatbot artifacts** | "I hope this helps! Let me know if..." | Remove entirely |
-| 25 | **"Let's" constructions** | "Let's explore," "Let's break this down" | Just start with the point |
-| 26 | **Cutoff disclaimers** | "While details are limited in available sources..." | Find sources or remove |
-| 27 | **Generic conclusions** | "The future looks bright," "Only time will tell" | Specific closing thought or cut |
-| 28 | **Emotional flatline** | "What surprised me most," "I was fascinated to discover" | Earn the emotion or cut the claim |
-| 29 | **Reasoning chain artifacts** | "Let me think step by step," "Breaking this down" | State conclusion, then evidence |
-| 30 | **Sycophantic tone** | "Great question!", "You're absolutely right!" | Remove entirely |
-| 31 | **Acknowledgment loops** | "You're asking about," "To answer your question" | Just answer directly |
-| 32 | **Confidence calibration** | "It's worth noting," "Interestingly," "Surprisingly" | Let the fact speak for itself |
+| 24 | **Chatbot-Artefakte** | „Ich hoffe, das hilft dir weiter! Melde dich gern…" | Ganz entfernen |
+| 25 | **„Lass uns"-Konstruktionen** | „Lass uns erkunden", „Schauen wir uns das genauer an" | Einfach mit dem Punkt beginnen |
+| 26 | **Cutoff-Disclaimer** | „Stand meines letzten Updates…" | Quelle finden oder entfernen |
+| 27 | **Generische Schlüsse** | „Die Zukunft sieht rosig aus", „Nur die Zeit wird zeigen" | Konkreter Schlussgedanke oder streichen |
+| 28 | **Emotionale Flachheit** | „Was mich am meisten überrascht hat", „Besonders faszinierend war" | Die Emotion einlösen oder die Behauptung streichen |
+| 29 | **Reasoning-Ketten-Artefakte** | „Lass mich das Schritt für Schritt durchgehen" | Schlussfolgerung nennen, dann den Beleg |
+| 30 | **Schmeichlerischer Ton** | „Grossartige Frage!", „Du hast völlig recht!" | Ganz entfernen |
+| 31 | **Bestätigungs-Schleifen** | „Du fragst nach", „Um deine Frage zu beantworten" | Einfach direkt antworten |
+| 32 | **Sicherheits-Kalibrierung** | „Es ist wichtig zu beachten", „Interessanterweise" | Den Fakt für sich sprechen lassen |
 
-### Meta Patterns
+### Meta-Muster
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 33 | **Excessive structure** | 5 headers in 200 words, "Overview:", "Key Points:" | Merge sections, use specific headers |
-| 34 | **Rhythm and uniformity** | All sentences 15–25 words, all paragraphs same length | Mix short/long, fragments, questions |
-| 35 | **Over-polishing** | Every irregularity sanded away, perfectly uniform prose | Keep natural disfluency, varied rhythm |
-| 36 | **Rewrite-vs-patch threshold** | 5+ vocabulary flags + 3+ pattern categories + uniform rhythm | Advise full rewrite, not patching |
+| 33 | **Übermässige Struktur** | 5 Überschriften in 200 Wörtern, „Überblick:", „Kernpunkte:" | Abschnitte zusammenführen, konkrete Überschriften |
+| 34 | **Rhythmus und Gleichförmigkeit** | Alle Sätze 15–25 Wörter, alle Absätze gleich lang | Kurz/lang mischen, Fragmente, Fragen |
+| 35 | **Über-Politur** | Jede Unregelmässigkeit weggeschliffen, perfekt gleichförmige Prosa | Natürliche Stockungen, variierten Rhythmus behalten |
+| 36 | **Neu-schreiben-vs.-Flicken-Schwelle** | 5+ Vokabel-Treffer plus 3+ Musterkategorien plus gleichförmiger Rhythmus | Vollständiges Neuschreiben raten, nicht flicken |
 
-### Structural Detection (v3.4)
+### Strukturelle Erkennung
 
-Added in v3.4 to catch LLM output that sidesteps the vocabulary tables by substituting synonyms but still leans on structural shapes detectors can identify. Crypto/web3/AI-infra content is where these patterns concentrate most heavily, but the rules generalize to any social-length post.
+Fängt LLM-Output, der die Vokabeltabellen umgeht, indem er Synonyme einsetzt, sich aber weiter auf strukturelle Formen stützt, die der Detector erkennt. Krypto-/Web3-/KI-Infra-Inhalte konzentrieren diese Muster am stärksten, aber die Regeln verallgemeinern auf jeden Social-Post.
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 37 | **Tier 3 phrases (multi-word boilerplate)** | "the integration of," "decentralized compute," "community-driven," "long-term sustainability" stacked across a piece | Replace the repeated phrase with a specific claim, or vary genuinely. Flagged per-phrase at ≥2 hits, or as a cluster when ≥3 distinct phrases appear |
-| 38 | **Future-narrative closers** | "may become one of the most important narratives of the next market cycle" | Pick the falsifiable version. "X may exceed Y by 2027" is a prediction; the template form is not |
-| 39 | **Hedge-stacked predictions** | "could potentially create," "may eventually unlock" | Pick one. Each hedge cancels the next |
-| 40 | **"Real/actual" adjective inflation** | "real on-chain tokenomics," "actual reward sustainability" | Drop the empty intensifier and add the specific claim. Carve-out: "real on-chain settlement, *not* bridged IOUs" is honest contrastive writing — the AI tell is the unsaid contrast |
-| 41 | **Hashtag stuffing** | 15-tag trailing block: `#AI #Crypto #Web3 #Innovation #FutureTech…` | 2-3 specific tags max, or none. Empirical threshold: 6+ tags is near-universal in LLM social output, rare in thoughtful human posts |
-| 42 | **Bullet lists of bare noun phrases** | `* Stable mining efficiency / Reliable pool connectivity / Optimized RandomX performance / Low failed share rates / Effective hardware utilization / Consistent thermal stability` | Convert to prose, or rewrite each item as a full claim with a verb and a number. Carve-out: genuine list content (changelogs, parameter docs, ingredient lists) where bare NPs are correct |
+| 37 | **Tier-3-Phrasen (Mehrwort-Boilerplate)** | „die Integration von", „dezentrale Rechenleistung", „community-getrieben", „langfristige Nachhaltigkeit" über einen Text gestapelt | Die wiederholte Phrase durch eine konkrete Aussage ersetzen oder echt variieren. Geflaggt pro Phrase ab 2 Treffern oder als Cluster bei 3+ verschiedenen Phrasen |
+| 38 | **Future-Narrative-Schlüsse** | „könnte zu einem der wichtigsten Narrative des nächsten Marktzyklus werden" | Die falsifizierbare Variante wählen. „X dürfte Y bis 2027 übertreffen" ist eine Prognose; die Schablone nicht |
+| 39 | **Gestapelte Absicherungen in Prognosen** | „könnte möglicherweise schaffen", „dürfte letztlich freisetzen" | Eines wählen. Jede Absicherung hebt die nächste auf |
+| 40 | **„Echt/tatsächlich"-Adjektiv-Aufblähung** | „echte On-Chain-Tokenomics", „tatsächlicher Nutzen" | Den leeren Verstärker streichen und die konkrete Aussage ergänzen. Carve-out: „echte On-Chain-Abwicklung, keine gebrückten Schuldscheine" ist ehrliches Kontrast-Schreiben – das Tell ist der ungesagte Kontrast |
+| 41 | **Hashtag-Stopfen** | 15-Tag-Block am Ende: `#KI #Krypto #Web3 #Innovation #ZukunftTech…` | Höchstens 2–3 konkrete Tags, oder keine. Empirische Schwelle: 6+ Tags sind in LLM-Social-Output nahezu universell, in durchdachten menschlichen Posts selten |
+| 42 | **Aufzählungslisten aus blossen Nominalphrasen** | `* Stabile Mining-Effizienz / Zuverlässige Pool-Verbindung / Optimierte RandomX-Leistung / Geringe Quote fehlgeschlagener Shares / Effiziente Hardware-Nutzung / Konstante Temperatur-Stabilität` | In Fliesstext umwandeln oder jeden Punkt als vollständige Aussage mit Verb und Zahl umschreiben. Carve-out: echter Listen-Inhalt (Changelogs, Parameter-Dokus, Zutatenlisten), wo blosse Nominalphrasen korrekt sind |
 
-### AI-tool fingerprints & later additions (v3.5–3.8)
+### KI-Tool-Fingerabdrücke und deutsche Zusatzregeln
 
-| # | Pattern | Before | After |
+| # | Muster | Vorher | Nachher |
 |---|---------|--------|-------|
-| 43 | **Unfilled placeholders** | `[Your Name]`, `[INSERT SOURCE]`, `2025-XX-XX` | Fill in with real content or delete — shipped placeholders are a near-definitive tell |
-| 44 | **Chatbot citation markup** | `citeturn0search0`, `oai_citation`, `contentReference[oaicite:0]` | Strip the markup token entirely |
-| 45 | **AI-tool URL parameters** | `utm_source=chatgpt.com`, `utm_source=copilot.com` | Strip the tracking parameter; keep the URL if the link matters |
-| 46 | **Speculative gap-filling** | "maintains a low profile," "likely began his career" | Cut the guess, or replace with a sourced fact |
-| 47 | **Hyphenated-pair overuse** | "a high-quality, well-architected, future-proof solution" | Cut to the modifier that matters; no hyphen in predicate ("the report is high quality") |
-| 48 | **Infomercial engagement hooks** | "The catch?", "The kicker?", "Here's the thing." | Delete the hook, state the thing |
-| 49 | **Vocabulary diversity (low TTR)** | Narrow, repetitive word range across 200+ words | Broaden the *what* — name specific things, cite specific cases |
-| 50 | **Self-labeling significance** | "That last move is the contrarian one," "This is the interesting part" | Cut the label; let the explanation carry the weight, or reposition the item so it stands out on its own |
+| 43 | **Nicht ausgefüllte Platzhalter** | `[Ihr Name]`, `[QUELLE EINFÜGEN]`, `TT.MM.JJJJ` | Mit echtem Inhalt füllen oder löschen – ausgelieferte Platzhalter sind ein nahezu definitives Tell |
+| 44 | **Chatbot-Zitations-Markup** | `citeturn0search0`, `oai_citation`, `contentReference[oaicite:0]` | Das Markup-Token ganz entfernen |
+| 45 | **KI-Tool-URL-Parameter** | `utm_source=chatgpt.com`, `utm_source=copilot.com` | Den Tracking-Parameter entfernen; die URL behalten, wenn der Link zählt |
+| 46 | **Spekulatives Lückenfüllen** | „hält ein relativ geringes öffentliches Profil", „begann vermutlich seine Karriere" | Die Vermutung streichen oder durch einen belegten Fakt ersetzen |
+| 47 | **Passivlastigkeit** | „es wird empfohlen, dass", „es sollte beachtet werden" | Ins Aktiv setzen und den Urheber nennen: „wir empfehlen", „beachte" |
 
-Two writer-side **tests** round out the catalog (judgment checks, not auto-detected): **paragraph-reshuffle immunity** (can you swap two body paragraphs without breaking the piece?) and the **treadmill effect** ("what's actually new in this paragraph?").
+Zur Severity-Kalibrierung ergänzen mehrere weitere Regeln den Katalog – Infomercial-Engagement-Köder („Der Haken?", „Der Clou?"), Wortschatz-Vielfalt (niedriges TTR), Selbst-Etikettierung von Bedeutung („Das ist der interessante Teil") – sowie zwei schreiber-seitige **Tests** (Ermessens-Checks, nicht auto-erkannt): **Absatz-Umstell-Immunität** (kannst du zwei Fliesstext-Absätze tauschen, ohne dass der Text bricht?) und der **Tretmühlen-Effekt** („was ist in diesem Absatz eigentlich neu?").
 
-## Full Example
+## Vollständiges Beispiel
 
-**Before (AI-generated):**
+**Vorher (KI-generiert):**
 
-> Certainly! Here's a comprehensive overview of Acme's Series B.
+> Gerne! Hier ist ein umfassender Überblick über Acmes Series B.
 >
-> Acme Analytics, a vibrant startup nestled in the heart of Boulder's thriving tech ecosystem, has secured $40M in Series B funding — marking a watershed moment for the company and the observability landscape at large. The round was led by Sequoia, with participation from Andreessen Horowitz, Y Combinator, and Index Ventures, underscoring the robust investor confidence in Acme's vision.
+> Acme Analytics, ein pulsierendes Start-up, eingebettet im Herzen des florierenden Tech-Ökosystems von Zürich, hat 40 Mio. CHF in einer Series-B-Finanzierung gesichert — ein wahrer Wendepunkt für das Unternehmen und die Observability-Landschaft insgesamt. Die Runde wurde von Lakestar angeführt, mit Beteiligung von Index Ventures, Redalpine und Creandum, was das robuste Investorenvertrauen in Acmes Vision unterstreicht.
 >
-> The platform serves as a unified hub for engineering teams, featuring real-time dashboards, boasting sub-second query performance, and presenting a seamless integration layer. It's not just another monitoring tool — it's a paradigm shift in how organizations navigate complex distributed systems. Experts believe Acme is poised to disrupt the $15B observability market. Studies show that companies utilizing comprehensive monitoring solutions can ascertain issues 40% faster.
+> Die Plattform dient als zentrale Drehscheibe für Engineering-Teams, verfügt über Echtzeit-Dashboards, bietet Abfrageleistung im Sub-Sekunden-Bereich und präsentiert eine nahtlose Integrationsschicht. Es ist nicht einfach ein weiteres Monitoring-Tool — es ist ein Paradigmenwechsel darin, wie Organisationen komplexe verteilte Systeme navigieren. Experten sind sich einig, dass Acme den 15-Mrd.-Observability-Markt umkrempeln dürfte. Studien zeigen, dass Unternehmen, die umfassende Monitoring-Lösungen nutzen, Probleme 40 % schneller erkennen.
 >
-> - 🚀 **Performance:** The platform streamlines incident response, empowering engineers to resolve issues faster.
-> - 💡 **Scale:** Acme fosters collaboration across teams, from frontend developers to SRE practitioners to platform builders to infrastructure engineers.
-> - ✅ **Adoption:** Customer adoption continues to accelerate, reflecting broader industry trends.
+> - 🚀 **Leistung:** Die Plattform optimiert die Incident-Reaktion und befähigt Engineers, Probleme schneller zu lösen.
+> - 💡 **Skalierung:** Acme fördert die Zusammenarbeit über Teams hinweg, von Frontend-Entwicklern über SRE-Fachleute bis zu Plattform-Bauenden und Infrastruktur-Ingenieuren.
+> - ✅ **Akzeptanz:** Die Kundenakzeptanz beschleunigt sich weiter und widerspiegelt breitere Branchentrends.
 >
-> Moreover, Acme's approach showcases the potential of modern observability — symbolizing a shift toward proactive monitoring, reflecting years of R&D investment, and highlighting the intricate interplay between data collection and actionable intelligence. Despite challenges common in the crowded monitoring space, Acme continues to thrive. In order to fully capitalize on this momentum, the company plans to expand its go-to-market endeavors.
+> Darüber hinaus zeigt Acmes Ansatz das Potenzial moderner Observability auf — einen Wandel hin zu proaktivem Monitoring symbolisierend, Jahre der Forschungsinvestition widerspiegelnd und das komplexe Zusammenspiel von Datenerfassung und verwertbarer Intelligenz aufzeigend. Trotz Herausforderungen, die im überfüllten Monitoring-Markt üblich sind, floriert Acme weiter. Um diesen Schwung voll auszuschöpfen, plant das Unternehmen, seine Go-to-Market-Bemühungen auszubauen.
 >
-> In conclusion, the future looks bright for Acme Analytics. Only time will tell how this game-changer will reshape the observability paradigm. Feel free to reach out if you'd like more details!
+> Zusammenfassend lässt sich sagen: Die Zukunft sieht rosig aus für Acme Analytics. Nur die Zeit wird zeigen, wie dieser Game-Changer das Observability-Paradigma neugestalten wird. Zögere nicht, dich zu melden, wenn du mehr Details möchtest!
 
-**After (cleaned up):**
+**Nachher (aufgeräumt):**
 
-> Acme Analytics raised a $40M Series B led by Sequoia. The Boulder-based startup makes an observability platform that runs queries in under a second and plugs into existing monitoring stacks without custom integration work.
+> Acme Analytics hat eine Series B über 40 Mio. CHF abgeschlossen, angeführt von Lakestar. Das Zürcher Start-up baut eine Observability-Plattform, die Abfragen in unter einer Sekunde beantwortet und sich an bestehende Monitoring-Stacks anschliesst, ohne dass man eigene Integrationen schreiben muss.
 >
-> The pitch is speed. Their median time-to-resolution is 12 minutes, compared to the 45-minute industry average that Datadog reported in 2024. That gap is why 380 companies are paying for it.
+> Der Pitch ist Tempo. Ihre mediane Zeit bis zur Behebung liegt bei 12 Minuten, gegenüber dem Branchenschnitt von 45 Minuten, den Datadog 2024 berichtete. Diese Lücke ist der Grund, warum 380 Firmen dafür zahlen.
 >
-> They'll use the money to hire sales reps in EMEA and add log management. The monitoring market is crowded, but Acme's bet is that most teams still stitch together three or four tools and lose time switching between them.
+> Das Geld geht in neue Vertriebsleute in der EMEA-Region und in Log-Management. Der Monitoring-Markt ist überfüllt, aber Acme wettet darauf, dass die meisten Teams noch drei oder vier Tools zusammenflicken und beim Wechseln dazwischen Zeit verlieren.
 
-**What the skill caught:** chatbot artifacts (Certainly!, Feel free to reach out), 3 em dashes, promotional language (vibrant, nestled, thriving), significance inflation (watershed moment), copula avoidance (serves as, featuring, boasting, presenting), 10 word replacements (landscape, robust, seamless, paradigm, streamline, empower, foster, utilize, ascertain, endeavor), synonym cycling (developers/practitioners/builders/engineers), negative parallelism (It's not just X, it's Y), notability name-dropping (Sequoia, a16z, YC, Index stacked for credibility), vague attributions (Experts believe, Studies show), filler phrases (In order to, Moreover), inline-header list with emoji, superficial -ing analysis (symbolizing... reflecting... highlighting...), formulaic challenges (Despite challenges... continues to thrive), generic conclusion (the future looks bright, only time will tell), false range implied in the adoption bullet.
+**Was das Skill gefangen hat:** Chatbot-Artefakte (Gerne!, Zögere nicht, dich zu melden), 2 Geviertstriche (—), Werbesprache (pulsierend, eingebettet, florierend), Bedeutungs-Aufblähung (ein wahrer Wendepunkt), Kopula-Vermeidung (dient als, verfügt über, bietet, präsentiert), Vokabel-Ersetzungen (nahtlos, robust, umfassend, optimieren, fördern, navigieren, neugestalten, auszuschöpfen), Synonym-Wechsel (Entwickler/Fachleute/Bauende/Ingenieure), negative Parallelität (Es ist nicht einfach X, es ist Y), Prominenz-Namedropping (Lakestar, Index, Redalpine, Creandum gestapelt für Glaubwürdigkeit), vage Quellenangaben (Experten sind sich einig, Studien zeigen), Füllphrasen (Um … auszuschöpfen, Darüber hinaus), Inline-Header-Liste mit Emoji, oberflächliche Partizip-Analyse (symbolisierend… widerspiegelnd… aufzeigend), schablonenhafte Herausforderungen (Trotz Herausforderungen… floriert weiter), generischer Schluss (Die Zukunft sieht rosig aus, Nur die Zeit wird zeigen). Über 30 KI-Tells.
 
-That's 35+ AI tells.
+## Detector ausführen
 
-## Run the detector
+Das Skill liefert eine deterministische, abhängigkeitsfreie Erkennungs-Engine in
+[`detector/`](./detector/) – dieselbe 43-Kategorien-Engine, die die Regeln oben
+beschreiben, als lauffähiger Code. Sie läuft in Node (`>=18`) und im Browser ohne
+Build-Schritt.
 
-The skill ships a deterministic, zero-dependency detection engine in
-[`detector/`](./detector/) — the same 43-category engine the rules above
-describe, as runnable code. It works in Node (`>=18`) and the browser with no
-build step.
-
-It's also the single source of the numeric score: the skill itself (and `detect` mode) report *which* patterns are present and how severe (P0/P1/P2), and the engine is what turns those into one computed 0–100 `score`. There's deliberately no second, prose-estimated score in `SKILL.md` — one scorer, not two.
+Sie ist zugleich die einzige Quelle des numerischen Scores: das Skill selbst (und der
+`detect`-Modus) melden, *welche* Muster vorhanden und wie schwer sie sind (P0/P1/P2),
+und die Engine ist das, was daraus einen berechneten Score von 0–100 macht. Es gibt
+bewusst keinen zweiten, prosa-geschätzten Score in `SKILL.md` – ein Scorer, nicht zwei.
 
 ```bash
-npm test          # run the detector's fixtures (no deps to install)
+npm test          # die Fixtures des Detectors ausführen (keine Abhängigkeiten zu installieren)
 ```
 
 ```js
 const AIDetector = require("./detector/patterns.js");
-const { score, label, issues } = AIDetector.analyzeText("Your text here…");
+const { score, label, issues } = AIDetector.analyzeText("Dein Text hier…");
 ```
 
-See [`detector/README.md`](./detector/README.md) for the full `analyzeText` API
-and [`detector/CATEGORIES.md`](./detector/CATEGORIES.md) for the rule ↔ category
-map that keeps `SKILL.md` and the engine in sync.
+Die Score-Labels sind deutsch: `Sauber`, `Minimale KI-Signale`, `Einige KI-Muster`,
+`Moderate KI-Signale`, `Starke KI-Signale`, `Viele KI-Muster` (plus die Sonderfälle
+`Leer`, `Zu kurz`, `Text zu lang`).
+
+Siehe [`detector/README.md`](./detector/README.md) für die vollständige `analyzeText`-API
+und [`detector/CATEGORIES.md`](./detector/CATEGORIES.md) für die Regel-↔-Kategorie-Map,
+die `SKILL.md` und die Engine synchron hält.
 
 ## Credits
 
-Pattern research informed by:
-- [Pangram Labs](https://www.pangram.com/) AI detection research — structural regularity insights, vocabulary flags from a decoder-only classifier trained on 28M human documents
-- Wikipedia's [Signs of AI-generated text](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) documentation — the canonical reference for AI writing tells, maintained by Wikipedia editors
-- [blader/humanizer](https://github.com/blader/humanizer) Claude Code skill
-- [brandonwise/humanizer](https://github.com/brandonwise/humanizer) — tiered vocabulary system, statistical analysis research (burstiness, sentence length variation, trigram repetition), and rewrite philosophy
-- [OpenClaw](https://github.com/openclaw/openclaw) humanizer skill ecosystem — community patterns and vocabulary research
+Diese deutsche Portierung in Schweizer Schreibweise baut auf dem ursprünglichen
+`avoid-ai-writing`-Skill von [Conor Bronsdon](https://github.com/conorbronsdon) auf
+(MIT-Lizenz). Das deutsche Vokabular und die Muster sind aus recherchierten deutschen
+LLM-Tells aufgebaut, nicht aus dem Englischen übersetzt; der Detector wurde an die
+deutsche Typografie angepasst (Geviertstrich als Tell, Halbgeviertstrich korrekt,
+Title-Case entfernt, Nominalstil/Passivlastigkeit ergänzt). Gepflegt unter
+[gardenbaum/avoid-ai-writing](https://github.com/gardenbaum/avoid-ai-writing).
 
-Authored by [Conor Bronsdon](https://github.com/conorbronsdon) · [LinkedIn](https://www.linkedin.com/in/conorbronsdon/) · [Chain of Thought podcast](https://chainofthought.show)
+Die Muster-Recherche stützt sich auf:
+- [Pangram Labs](https://www.pangram.com/) KI-Erkennungs-Forschung — Erkenntnisse zur strukturellen Regelmässigkeit, Vokabel-Flags aus einem Decoder-only-Klassifikator, trainiert auf 28 Mio. menschlichen Dokumenten
+- Wikipedias [Signs of AI-generated text](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — die kanonische Referenz für KI-Schreib-Tells, gepflegt von Wikipedia-Redaktorinnen und -Redaktoren
+- [blader/humanizer](https://github.com/blader/humanizer) Claude-Code-Skill
+- [brandonwise/humanizer](https://github.com/brandonwise/humanizer) — gestuftes Vokabularsystem, statistische Analyse-Forschung (Burstiness, Satzlängen-Variation, Trigramm-Wiederholung) und Umschreib-Philosophie
+- [OpenClaw](https://github.com/openclaw/openclaw) Humanizer-Skill-Ökosystem — Community-Muster und Vokabel-Forschung
 
-## Community / Multilingual
+Ursprünglich verfasst von [Conor Bronsdon](https://github.com/conorbronsdon) · [LinkedIn](https://www.linkedin.com/in/conorbronsdon/) · [Chain of Thought Podcast](https://chainofthought.show)
 
-Things the community has built around this skill:
+## Community / Mehrsprachig
 
-- **[avoid-ai-writing-multilingual](https://github.com/jurigis/avoid-ai-writing-multilingual)** by [Jürgen Kraus](https://github.com/jurigis) — German (`SKILL-DE.md`) and Romanian (`SKILL-RO.md`) adaptations, grounded in native-language research rather than translated from English. French and Spanish planned.
-- **[$avoid token + burn web app](https://avoid-ai-writing-app.vercel.app)** — a community-built Solana token (`$avoid`) and token-burn web app around this project (2026), now in maintenance mode.
+KI-Schreib-Tells sind sprachspezifisch, und um das ursprüngliche Skill herum sind mehrere Sprach-Adaptionen entstanden:
 
-Built something on top of this skill? Open an issue — happy to link it here.
+- **[avoid-ai-writing-multilingual](https://github.com/jurigis/avoid-ai-writing-multilingual)** von [Jürgen Kraus](https://github.com/jurigis) — deutsche (`SKILL-DE.md`) und rumänische (`SKILL-RO.md`) Adaptionen, in muttersprachlicher Recherche verankert statt aus dem Englischen übersetzt.
+
+Etwas auf Basis dieses Skills gebaut? Öffne ein Issue – wir verlinken es hier gern.
 
 ---
 
-## Disclaimer
+## Haftungsausschluss
 
-*All views, opinions, and statements expressed on this account are solely my own and are made in my personal capacity. They do not reflect, and should not be construed as reflecting, the views, positions, or policies of Modular. This account is not affiliated with, authorized by, or endorsed by Modular in any way.*
+*Dieses Skill markiert statistische Muster, kein Urteil. Die hier geflaggten Formen kommen in LLM-Ausgaben häufiger vor, aber auch Menschen erzeugen sie – besonders unter Zeitdruck, in unvertrauten Textsorten oder in einer Zweitsprache. Behandle die Treffer als Signal, nicht als Beweis. Mach sie nie zur alleinigen Grundlage einer folgenreichen Entscheidung (akademische Integrität, Einstellung, Veröffentlichung, Urheberschaft). Verbinde das Signal stets mit dem Kontext.*
 
-## License
+## Lizenz
 
 MIT

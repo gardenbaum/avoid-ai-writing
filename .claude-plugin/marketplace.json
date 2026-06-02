@@ -9,9 +9,9 @@
     {
       "name": "avoid-ai-writing",
       "source": "./plugins/avoid-ai-writing",
-      "description": "Audit & rewrite content to remove AI writing patterns (\"AI-isms\"). Supports detect-only and edit-in-place modes, voice profiles, and iterate-to-convergence.",
+      "description": "Prueft und ueberarbeitet deutschsprachige Texte, um typische KI-Schreibmuster zu entfernen. Unterstuetzt Nur-Erkennung und direkte Bearbeitung, Voice-Profile und Iteration bis zur Konvergenz. Deutsche/schweizer Portierung (kein Eszett).",
       "category": "productivity",
-      "keywords": ["writing", "editing", "ai-detection", "humanize"]
+      "keywords": ["schreiben", "lektorat", "ki-erkennung", "vermenschlichen", "deutsch", "schweiz"]
     }
   ]
 }

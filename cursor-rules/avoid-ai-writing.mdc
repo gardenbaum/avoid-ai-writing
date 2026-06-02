@@ -1,610 +1,572 @@
 ---
-description: Audit and rewrite content to remove AI writing patterns ("AI-isms"). Activate whenever editing prose-heavy files (Markdown, documentation, blog posts, READMEs, release notes, emails). Cursor port of the avoid-ai-writing skill v3.7.2. See https://github.com/conorbronsdon/avoid-ai-writing.
+description: Prüft Texte auf KI-Schreibmuster („KI-Floskeln") und schreibt sie um. Aktiviere die Regel beim Bearbeiten textlastiger Dateien (Markdown, Dokumentation, Blogposts, READMEs, Release Notes, E-Mails). Cursor-Port des Skills avoid-ai-writing v4.0.0 (deutsche/schweizer Portierung). Siehe https://github.com/gardenbaum/avoid-ai-writing.
 globs: ["**/*.md", "**/*.mdx", "**/*.txt", "**/*.rst", "**/*.adoc"]
 alwaysApply: false
 ---
 
-# Avoid AI Writing — Audit & Rewrite
+# Avoid AI Writing — Prüfen & Umschreiben
 
-You are editing content to remove AI writing patterns ("AI-isms") that make text sound machine-generated.
+Du bearbeitest Texte, um KI-Schreibmuster („KI-Floskeln") zu entfernen, die einen Text maschinengeneriert wirken lassen.
 
-## What this skill is and isn't
+## Was dieses Skill ist und was nicht
 
-This is a **writing-quality tool**, not a verdict. The patterns flagged here are statistically more common in LLM output, but humans on autopilot — especially writing under deadline pressure, in unfamiliar genres, or in a second language — produce the same shapes. Independent audits of commercial AI detectors have found false-positive rates above 60% on non-native English writers (Liang et al., Stanford, *Patterns* 2023) and overall misclassification rates above 70% on open-source detectors (Jabarian & Imas, BFI Working Paper 2025-116, 2025). Adversarial paraphrase reduces detection accuracy by ~88% across every method tested (arXiv:2506.07001, 2025).
+Das ist ein **Werkzeug für die Schreibqualität**, kein Urteil. Die hier markierten Muster kommen in LLM-Ausgaben statistisch häufiger vor, aber auch Menschen im Autopiloten — besonders unter Zeitdruck, in unvertrauten Textsorten oder in einer Zweitsprache — erzeugen dieselben Formen. Unabhängige Prüfungen kommerzieller KI-Detektoren fanden Falsch-Positiv-Raten über 60 % bei Nicht-Muttersprachlern (Liang et al., Stanford, *Patterns* 2023) und Fehlklassifikationsraten über 70 % bei Open-Source-Detektoren (Jabarian & Imas, BFI Working Paper 2025-116, 2025). Adversarische Paraphrase senkt die Erkennungsgenauigkeit über alle getesteten Methoden um etwa 88 % (arXiv:2506.07001, 2025).
 
-The patterns are useful as a signal — both for cleaning up your own writing and for assessing whether a piece reads as AI-generated. Just don't make them the sole basis for a consequential decision (academic integrity, hiring, publication, attribution). Several rules here also fire on second-language writing, deadline-pressed humans, and technical genres that compress vocabulary by design. Pair the signal with context: who wrote it, what genre, what the writer's normal voice looks like, what other evidence you have.
+Die Muster taugen als Signal — sowohl zum Aufräumen des eigenen Texts als auch zur Einschätzung, ob ein Text wie KI-generiert wirkt. Mach sie nur nicht zur alleinigen Grundlage einer folgenreichen Entscheidung (akademische Integrität, Einstellung, Veröffentlichung, Urheberschaft). Mehrere Regeln hier schlagen auch bei Zweitsprach-Texten, bei Menschen unter Zeitdruck und bei Fachtextsorten an, die ihren Wortschatz bewusst verdichten. Verbinde das Signal mit dem Kontext: Wer hat geschrieben, welche Textsorte, wie sieht die übliche Stimme der schreibenden Person aus, welche weiteren Belege gibt es.
 
-In short: signals, not proof. Worth acting on; not worth ruining someone's day over.
+Kurz: Signale, kein Beweis. Wert, etwas darauf zu geben; nicht den Wert, jemandem den Tag zu ruinieren.
 
-## Modes
+## Modi
 
-This skill operates in one of three modes:
+Dieses Skill arbeitet in einem von drei Modi:
 
-**`rewrite`** (default) — Flag AI-isms and rewrite the text to fix them.
+**`rewrite`** (Standard) — KI-Floskeln markieren und den Text korrigierend umschreiben.
 
-**`detect`** — Flag AI-isms only. No rewriting. Use this mode when:
-- The writer wants to see what's flagged and decide what to fix themselves
-- The flagged patterns might be intentional (AI patterns aren't always bad — they can be effective in small doses)
-- You're auditing text you don't want altered (published content, someone else's writing, reference material)
-- You want a quick scan without waiting for a full rewrite
+**`detect`** — Nur KI-Floskeln markieren. Kein Umschreiben. Nutze diesen Modus, wenn:
+- Die schreibende Person sehen will, was markiert wird, und selbst entscheidet, was sie ändert
+- Die markierten Muster bewusst gesetzt sein könnten (KI-Muster sind nicht immer schlecht — in kleinen Dosen können sie wirken)
+- Du Text prüfst, den du nicht verändern willst (veröffentlichte Inhalte, fremder Text, Referenzmaterial)
+- Du einen schnellen Scan willst, ohne auf ein vollständiges Umschreiben zu warten
 
-**`edit`** — Edit a file in place rather than returning rewritten text. Use this when the writer points you at a file ("clean up `draft.md`", "fix the AI-isms in this file directly") and wants the file changed, not a copy to paste back. Make **minimal, targeted edits** — change the flagged spans, not the whole document. **Preserve passages that are already human**: if a paragraph has no tells, leave it untouched. **Don't edit quoted material, code blocks, or text attributed to someone else** — flag those instead of rewriting them. For a large file, confirm which section to clean before changing anything. After editing, re-read the file and confirm the flagged patterns are resolved.
+**`edit`** — Eine Datei direkt bearbeiten, statt umgeschriebenen Text zurückzugeben. Nutze das, wenn die schreibende Person dich auf eine Datei verweist („räum `draft.md` auf", „korrigiere die KI-Floskeln direkt in dieser Datei") und die Datei selbst geändert haben will, keine Kopie zum Zurückkopieren. Mach **minimale, gezielte Änderungen** mit dem Edit-Tool — ändere die markierten Stellen, nicht das ganze Dokument. **Lass Passagen unangetastet, die schon menschlich sind**: Hat ein Absatz keine Tells, rühr ihn nicht an. **Bearbeite keine Zitate, Code-Blöcke oder Text, der jemand anderem zugeschrieben ist** — markiere die, statt sie umzuschreiben. Bei einer grossen Datei klärst du zuerst, welcher Abschnitt bereinigt werden soll, bevor du etwas änderst. Nach dem Bearbeiten liest du die Datei erneut und bestätigst, dass die markierten Muster behoben sind.
 
-Trigger detect mode when the user says "detect," "flag only," "audit only," "just flag," "scan," "what AI patterns are in this," or similar. Trigger edit mode when the user names a file and asks you to fix or clean it in place. Default to rewrite mode if not specified.
+Löse den detect-Modus aus, wenn die Person sagt „prüfen", „nur markieren", „nur auditieren", „nur flaggen", „scannen", „welche KI-Muster stecken da drin" oder Ähnliches. Löse den edit-Modus aus, wenn die Person eine Datei nennt und dich bittet, sie direkt zu korrigieren oder aufzuräumen. Ohne Angabe gilt der rewrite-Modus.
 
-**Invocation.** Natural language is enough ("rewrite this in a blunt voice for LinkedIn," "edit `post.md` in place," "scan this, don't rewrite"). Power users can also pass explicit options, which map to the sections below: `[--mode rewrite|detect|edit]`, `[--voice casual|professional|technical|warm|blunt]`, `[--context linkedin|blog|technical-blog|investor-email|docs|casual]`, `[--file PATH]`, `[--iterate N]` (max 2).
+**Aufruf.** Natürliche Sprache genügt („schreib das in einem direkten Ton für LinkedIn um", „bearbeite `post.md` direkt", „scann das, schreib es nicht um"). Wer will, kann explizite Optionen übergeben, die zu den Abschnitten unten passen: `[--mode rewrite|detect|edit]`, `[--voice casual|professional|technical|warm|blunt]`, `[--context linkedin|blog|technical-blog|investor-email|docs|casual]`, `[--file PATH]`, `[--iterate N]` (max. 2).
 
-**Iterate to convergence (optional).** Rewrite mode already runs one corrective second pass (see Output format) — that built-in pass *is* pass 2, so `--iterate` does not stack on top of it. When the writer asks to "iterate," "keep going until it's clean," or passes `--iterate N`, repeat the audit→rewrite cycle until no patterns remain or **N passes** are reached. Cap **N at 2**: a rewrite plus one corrective pass clears the flagged patterns, and a third pass costs a full regeneration while rarely finding more. Report how many passes it took ("converged in 2 passes").
-
----
-
-In **rewrite** mode, your job is to:
-
-1. **Audit it**: identify every AI-ism present, citing the specific text
-2. **Rewrite it**: return a clean version with all AI-isms removed
-3. **Show a diff summary**: briefly list what you changed and why
-
-In **detect** mode, your job is to:
-
-1. **Audit it**: identify every AI-ism present, citing the specific text
-2. **Assess it**: note which flags are clear problems vs. patterns that may be intentional or effective in context
-
-In **edit** mode, your job is to:
-
-1. **Read** the file the writer named
-2. **Edit in place**: apply minimal, targeted fixes to the flagged spans, leaving already-human passages untouched
-3. **Verify**: re-read the file and confirm the flagged patterns are resolved; report what you changed
+**Iterieren bis stabil (optional).** Der rewrite-Modus läuft ohnehin einen korrigierenden zweiten Durchlauf (siehe Output-Format) — dieser eingebaute Durchlauf *ist* Durchlauf 2, `--iterate` stapelt sich also nicht darauf. Wenn die Person bittet zu „iterieren", „weiterzumachen, bis es sauber ist", oder `--iterate N` übergibt, wiederholst du den Zyklus Prüfen→Umschreiben, bis keine Muster mehr bleiben oder **N Durchläufe** erreicht sind. Begrenze **N auf 2**: ein Umschreiben plus ein korrigierender Durchlauf räumt die markierten Muster ab, ein dritter kostet eine volle Neugenerierung und findet selten mehr. Melde, wie viele Durchläufe es brauchte („stabil nach 2 Durchläufen").
 
 ---
 
-## What to remove or fix
+Im **rewrite**-Modus ist deine Aufgabe:
 
-### Formatting
-- **Em dashes (— and --)**: Replace with commas, periods, parentheses, or rewrite as two sentences. Target: zero. Hard max: one per 1,000 words. This applies to headings and section titles too, not just body prose. Catch both the Unicode em dash (—) and the double-hyphen substitute (--).
-- **Bold overuse**: Strip bold from most phrases. One bolded phrase per major section at most, or none. If something's important enough to bold, restructure the sentence to lead with it instead.
-- **Emoji in headers**: Remove entirely. No `## 🚀 What This Means`. Exception: social posts may use one or two emoji sparingly — at the end of a line, never mid-sentence.
-- **Excessive bullet lists**: Convert bullet-heavy sections into prose paragraphs. Bullets only for genuinely list-like content (feature comparisons, step-by-step instructions, API parameters).
-- **Curly quotation marks (“ ” ‘ ’) and apostrophes**: Curly quotes and apostrophes (U+201C/U+201D, U+2018/U+2019) are a *weak* paste-from-chat signal — meaningful mainly in plain-text contexts like code comments, commit messages, or plaintext drafts, where nothing auto-curls. Treat as corroborating, never conclusive: Word, Google Docs, macOS, and iOS curl quotes by default, so most human prose contains them too. Don't flag curly apostrophes (U+2019) on their own. Replace with straight quotes in plain-text/code; leave them in finished publications and locale-correct punctuation (French « », German „ “).
+1. **Prüfen**: jede vorhandene KI-Floskel finden, mit Zitat der konkreten Stelle
+2. **Umschreiben**: eine saubere Fassung ohne KI-Floskeln zurückgeben
+3. **Diff-Zusammenfassung zeigen**: kurz auflisten, was du geändert hast und warum
 
-### Sentence structure
-- **"It's not X — it's Y" / "This isn't about X, it's about Y"**: Rewrite as a direct positive statement. Max one per piece, and only if it serves the argument.
-- **Hollow intensifiers**: Cut `genuine`, `real` (as in "a real improvement"), `truly`, `quite frankly`, `to be honest`, `let's be clear`, `it's worth noting that`. Just state the fact.
-- **Vague endorsement ("worth [verb]ing")**: Cut or replace `worth reading`, `worth paying attention to`, `worth a look`, `worth exploring`, `worth checking out`, `worth your time`. These substitute a generic thumbs-up for a specific reason. Say *why* something matters instead.
-- **Hedging**: Cut `perhaps`, `could potentially`, `it's important to note that`, `to be clear`. Make the point directly.
-- **Missing bridge sentences**: Each paragraph should connect to the last. If paragraphs could be rearranged without the reader noticing, add connective tissue.
-- **Compulsive rule of three**: Vary groupings. Use two items, four items, or a full sentence instead of triads. Max one "adjective, adjective, and adjective" pattern per piece.
+Im **detect**-Modus ist deine Aufgabe:
 
-### Words and phrases to replace
+1. **Prüfen**: jede vorhandene KI-Floskel finden, mit Zitat der konkreten Stelle
+2. **Einschätzen**: festhalten, welche Treffer klare Probleme sind und welche bewusst oder im Kontext wirksam sein könnten
 
-Words are organized into three tiers based on how reliably they signal AI-generated text. This tiered approach — adapted from [brandonwise/humanizer](https://github.com/brandonwise/humanizer)'s vocabulary research — reduces false positives on words that are fine in isolation but suspicious in clusters.
+Im **edit**-Modus ist deine Aufgabe:
 
-- **Tier 1 — Always flag.** These words appear 5–20x more often in AI text than human text. Replace on sight.
-- **Tier 2 — Flag in clusters.** Individually fine, but two or more in the same paragraph is a strong AI signal. Flag when they appear together.
-- **Tier 3 — Flag by density.** Common words that AI simply overuses. Only flag when they make up a noticeable fraction of the text (roughly 3%+ of total words).
+1. **Lesen** der von der Person genannten Datei
+2. **Direkt bearbeiten**: minimale, gezielte Korrekturen an den markierten Stellen mit dem Edit-Tool, schon menschliche Passagen unangetastet lassen
+3. **Verifizieren**: die Datei erneut lesen und bestätigen, dass die markierten Muster behoben sind; melden, was du geändert hast
 
-#### Tier 1 — Always replace
+---
 
-| Replace | With |
+## Was zu entfernen oder zu korrigieren ist
+
+### Formatierung
+- **Geviertstriche (— und --)**: Der englische Geviertstrich (—, U+2014) ist im Deutschen untypisch und das eigentliche Paste-aus-LLM-Tell. Ersetze ihn durch Kommas, Punkte, Klammern oder einen korrekten Halbgeviertstrich mit Leerzeichen (–, U+2013). Zielwert: null Geviertstriche. Harte Obergrenze: einer pro 1'000 Wörter. Gilt auch für Überschriften und Titel, nicht nur für den Fliesstext. Fang sowohl den Unicode-Geviertstrich (—) als auch den Doppelbindestrich-Ersatz (--) ab. **Carve-out:** Der Halbgeviertstrich (–, mit Leerzeichen) ist korrekte deutsche Zeichensetzung und wird nicht geflaggt.
+- **Fett-Überladung**: Streiche Fettdruck aus den meisten Wendungen. Höchstens eine fettgesetzte Wendung pro grösserem Abschnitt, oder keine. Ist etwas wichtig genug zum Fettsetzen, bau den Satz so um, dass er damit beginnt.
+- **Emoji in Überschriften**: Ganz entfernen. Kein `## 🚀 Was das bedeutet`. Ausnahme: Social-Posts dürfen sparsam ein oder zwei Emoji verwenden — am Zeilenende, nie mitten im Satz.
+- **Übermässige Aufzählungslisten**: Wandle aufzählungslastige Abschnitte in Fliesstext um. Aufzählungen nur für echt listenartigen Inhalt (Feature-Vergleiche, Schritt-für-Schritt-Anleitungen, API-Parameter).
+- **Anführungszeichen**: Die deutschen Anführungszeichen („ " und ‚ ', U+201E/U+201C/U+201A/U+2018) und die Guillemets (« » und ‹ ›) gelten als lokal-korrekte Zeichensetzung und werden **nie** geflaggt. Geschwungene englische Anführungszeichen (" " ' ') sind höchstens ein *schwaches* Aus-dem-Chat-kopiert-Signal — relevant vor allem in Klartext-Kontexten wie Code-Kommentaren, Commit-Nachrichten oder Klartext-Entwürfen, wo nichts automatisch umsetzt. Behandle das als stützend, nie als schlüssig: Word, Google Docs, macOS und iOS setzen Anführungszeichen standardmässig um, also enthält auch viel menschliche Prosa sie. Geschwungene Apostrophe (') allein nicht flaggen. In Klartext/Code durch gerade Anführungszeichen ersetzen; in fertigen Publikationen und bei lokal-korrekter Zeichensetzung stehen lassen.
+
+### Satzstruktur
+- **„Es ist nicht X — es ist Y" / „Dabei geht es nicht um X, sondern um Y"**: Schreib es als direkte positive Aussage um. Höchstens eine pro Text, und nur wenn es dem Argument dient.
+- **Hohle Verstärker**: Streiche `wirklich`, `echt` (wie in „eine echte Verbesserung"), `ehrlich gesagt`, `um ehrlich zu sein`, `seien wir ehrlich`, `es lohnt sich zu erwähnen`. Nenn einfach die Tatsache.
+- **Vage Empfehlung („lohnt sich zu [Verb]")**: Streiche oder ersetze `lohnt sich zu lesen`, `verdient Beachtung`, `einen Blick wert`, `lohnt sich zu erkunden`, `lohnt sich anzuschauen`. Das setzt einen pauschalen Daumen-hoch an die Stelle eines konkreten Grundes. Sag stattdessen *warum* etwas zählt.
+- **Absicherungen**: Streiche `vielleicht`, `könnte möglicherweise`, `es ist wichtig zu beachten, dass`, `um es klar zu sagen`. Bring den Punkt direkt.
+- **Fehlende Brückensätze**: Jeder Absatz sollte an den vorigen anknüpfen. Liessen sich die Absätze umstellen, ohne dass es jemandem auffiele, fehlt das verbindende Gewebe.
+- **Zwanghafte Dreierregel**: Variiere die Gruppierungen. Nimm zwei Punkte, vier Punkte oder einen ganzen Satz statt Dreiergruppen. Höchstens ein „Adjektiv, Adjektiv und Adjektiv"-Muster pro Text.
+
+### Wörter und Wendungen zum Ersetzen
+
+Die Wörter sind in drei Stufen geordnet, je nachdem, wie zuverlässig sie auf KI-generierten Text hinweisen. Dieser Stufen-Ansatz — angelehnt an die Vokabelrecherche von [brandonwise/humanizer](https://github.com/brandonwise/humanizer) — senkt Falsch-Positive bei Wörtern, die einzeln in Ordnung sind, aber im Cluster verdächtig.
+
+- **Tier 1 — immer flaggen.** Diese Wörter erscheinen in KI-Text 5–20× häufiger als in menschlichem Text. Auf Sicht ersetzen.
+- **Tier 2 — im Cluster flaggen.** Einzeln in Ordnung, aber zwei oder mehr im selben Absatz sind ein starkes KI-Signal. Flaggen, wenn sie zusammen auftreten.
+- **Tier 3 — nach Dichte flaggen.** Gewöhnliche Wörter, die KI schlicht überbeansprucht. Nur flaggen, wenn sie einen merklichen Anteil des Texts ausmachen (ungefähr ab 3 % aller Wörter).
+
+#### Tier 1 — immer ersetzen
+
+| Ersetze | Durch |
 |---|---|
-| delve / delve into | explore, dig into, look at |
-| landscape (metaphor) | field, space, industry, world |
-| tapestry | (describe the actual complexity) |
-| realm | area, field, domain |
-| paradigm | model, approach, framework |
-| embark | start, begin |
-| beacon | (rewrite entirely) |
-| testament to | shows, proves, demonstrates |
-| robust | strong, reliable, solid |
-| comprehensive | thorough, complete, full |
-| cutting-edge | latest, newest, advanced |
-| leverage (verb) | use |
-| pivotal | important, key, critical |
-| underscores | highlights, shows |
-| meticulous / meticulously | careful, detailed, precise |
-| seamless / seamlessly | smooth, easy, without friction |
-| game-changer / game-changing | describe what specifically changed and why it matters |
-| hit differently / hits different | (say what specifically changed, or cut) |
-| utilize | use |
-| watershed moment | turning point, shift (or describe what changed) |
-| marking a pivotal moment | (state what happened) |
-| the future looks bright | (cut — say something specific or nothing) |
-| only time will tell | (cut — say something specific or nothing) |
-| nestled | is located, sits, is in |
-| vibrant | (describe what makes it active, or cut) |
-| thriving | growing, active (or cite a number) |
-| despite challenges… continues to thrive | (name the challenge and the response, or cut) |
-| showcasing | showing, demonstrating (or cut the clause) |
-| deep dive / dive into | look at, examine, explore |
-| unpack / unpacking | explain, break down, walk through |
-| bustling | busy, active (or cite what makes it busy) |
-| intricate / intricacies | complex, detailed (or name the specific complexity) |
-| complexities | (name the actual complexities, or use "problems" / "details") |
-| ever-evolving | changing, growing (or describe how) |
-| enduring | lasting, long-running (or cite how long) |
-| daunting | hard, difficult, challenging |
-| holistic / holistically | complete, full, whole (or describe what's included) |
-| actionable | practical, useful, concrete |
-| impactful | effective, significant (or describe the impact) |
-| learnings | lessons, findings, takeaways |
-| thought leader / thought leadership | expert, authority (or describe their actual contribution) |
-| best practices | what works, proven methods, standard approach |
-| at its core | (cut — just state the thing) |
-| synergy / synergies | (describe the actual combined effect) |
-| interplay | relationship, connection, interaction |
-| in order to | to |
-| due to the fact that | because |
-| serves as | is |
-| features (verb) | has, includes |
-| boasts | has |
-| presents (inflated) | is, shows, gives |
-| commence | start, begin |
-| ascertain | find out, determine, learn |
-| endeavor | effort, attempt, try |
-| keen (as intensifier) | interested, eager, enthusiastic (or cut — just state the interest) |
-| symphony (metaphor) | (describe the actual coordination or combination) |
-| embrace (metaphor) | adopt, accept, use, switch to |
+| nahtlos | reibungslos, ohne Unterbruch, problemlos |
+| mühelos | leicht, einfach, ohne Aufwand |
+| ganzheitlich | umfassend benennen, was gemeint ist (oder streichen) |
+| bahnbrechend | neu, das erste (oder sagen, was konkret zuvor unmöglich war) |
+| revolutionär | verändernd (oder beschreiben, was sich ändert) |
+| revolutionieren | verändern, umkrempeln (oder beschreiben, was sich ändert) |
+| eintauchen (metaphorisch) | anschauen, untersuchen, durchgehen |
+| beleuchten (metaphorisch) | erklären, zeigen, darstellen |
+| wendepunkt | sagen, was sich konkret änderte (oder streichen) |
+| meilenstein | konkretes Ergebnis nennen (Zahl, Datum, Lieferung) |
+| facettenreich | die einzelnen Aspekte nennen (oder streichen) |
+| robust | stabil, zuverlässig, belastbar |
+| in der heutigen schnelllebigen welt | konkreten Kontext nennen oder direkt zur Sache (oft ganz streichen) |
+| es lohnt sich, zu erwähnen | die Tatsache einfach hinschreiben |
+| ein zeugnis für | zeigt, beweist, belegt |
+| auf ein neues level heben | verbessern, ausbauen (oder sagen, was besser wird) |
 
-#### Tier 2 — Flag when 2+ appear in the same paragraph
+#### Tier 2 — flaggen, wenn 2+ im selben Absatz auftreten
 
-These words are legitimate on their own. When two or more show up together, the paragraph likely needs a rewrite.
+Diese Wörter sind einzeln berechtigt. Tauchen zwei oder mehr zusammen auf, braucht der Absatz wahrscheinlich ein Umschreiben.
 
-| Replace | With |
+| Ersetze | Durch |
 |---|---|
-| harness | use, take advantage of |
-| navigate / navigating | work through, handle, deal with |
-| foster | encourage, support, build |
-| elevate | improve, raise, strengthen |
-| unleash | release, enable, unlock |
-| streamline | simplify, speed up |
-| empower | enable, let, allow |
-| bolster | support, strengthen, back up |
-| spearhead | lead, drive, run |
-| resonate / resonates with | connect with, appeal to, matter to |
-| revolutionize | change, transform, reshape (or describe what changed) |
-| facilitate / facilitates | enable, help, allow, run |
-| underpin | support, form the basis of |
-| nuanced | specific, subtle, detailed (or name the actual nuance) |
-| crucial | important, key, necessary |
-| multifaceted | (describe the actual facets, or cut) |
-| ecosystem (metaphor) | system, community, network, market |
-| myriad | many, numerous (or give a number) |
-| plethora | many, a lot of (or give a number) |
-| encompass | include, cover, span |
-| catalyze | start, trigger, accelerate |
-| reimagine | rethink, redesign, rebuild |
-| galvanize | motivate, rally, push |
-| augment | add to, expand, supplement |
-| cultivate | build, develop, grow |
-| illuminate | clarify, explain, show |
-| elucidate | explain, clarify, spell out |
-| juxtapose | compare, contrast, set side by side |
-| paradigm-shifting | (describe what actually shifted) |
-| transformative / transformation | (describe what changed and how) |
-| cornerstone | foundation, basis, key part |
-| paramount | most important, top priority |
-| poised (to) | ready, set, about to |
-| burgeoning | growing, emerging (or cite a number) |
-| nascent | new, early-stage, emerging |
-| quintessential | typical, classic, defining |
-| overarching | main, central, broad |
-| underpinning / underpinnings | basis, foundation, what supports |
+| das volle potenzial ausschöpfen | konkret sagen, was man damit erreicht |
+| navigieren (metaphorisch) | bewältigen, durchkommen, umgehen mit |
+| optimieren | verbessern, beschleunigen, einfacher machen |
+| transformativ | sagen, was sich ändert und wie |
+| transformation | beschreiben, was sich änderte |
+| ökosystem (metaphorisch) | System, Netzwerk, Umfeld, Markt |
+| vielzahl | viele, mehrere (oder eine konkrete Zahl) |
+| fülle | viel, reichlich (oder eine konkrete Menge) |
+| eckpfeiler | Grundlage, Kern, wichtigster Teil |
+| von grösster bedeutung | wichtig, zentral, entscheidend (oder sagen, wofür) |
+| aufkeimend | neu, jung, im Entstehen (oder mit Zahl belegen) |
+| fördern | unterstützen, aufbauen |
+| stärken | verbessern |
+| ermöglichen | erlauben, lassen |
+| entscheidend | wichtig, nötig |
+| umfassend | vollständig, gründlich |
+| katalysieren | auslösen, beschleunigen |
+| neugestalten | überdenken, umbauen |
 
-#### Tier 3 — Flag only at high density
+#### Tier 3 — nur bei hoher Dichte flaggen
 
-These are normal words. Only flag them when the text is saturated with them — a sign that AI filled space with vague praise instead of specifics.
+Das sind normale Wörter. Flagge sie nur, wenn der Text damit gesättigt ist — ein Zeichen, dass die KI Raum mit vagem Lob statt mit Konkretem gefüllt hat.
 
-| Word | What to do |
+| Wort | Was tun |
 |---|---|
-| significant / significantly | Replace some with specifics: numbers, comparisons, examples |
-| innovative / innovation | Describe what's actually new |
-| effective / effectively | Say how or cite a metric |
-| dynamic / dynamics | Name the actual forces or changes |
-| scalable / scalability | Describe what scales and to what |
-| compelling | Say why it compels |
-| unprecedented | Name the precedent it breaks (or cut) |
-| exceptional / exceptionally | Cite what makes it an exception |
-| remarkable / remarkably | Say what's worth remarking on |
-| sophisticated | Describe the sophistication |
-| instrumental | Say what role it played |
-| world-class / state-of-the-art / best-in-class | Cite a benchmark or comparison |
+| innovativ / innovation | Sagen, was konkret neu ist |
+| bedeutend | Durch Konkretes ersetzen: Zahlen, Vergleiche, Beispiele |
+| effektiv | Sagen wie, oder eine Kennzahl nennen |
+| dynamisch / dynamik | Die konkreten Kräfte oder Veränderungen nennen |
+| skalierbar / skalierbarkeit | Sagen, was wächst und bis wohin |
+| überzeugend | Sagen, was genau überzeugt |
+| beispiellos | Den Präzedenzfall nennen, der gebrochen wird (oder streichen) |
+| aussergewöhnlich | Sagen, was die Ausnahme ausmacht |
+| bemerkenswert | Sagen, was genau bemerkenswert ist |
+| ausgeklügelt | Die konkrete Raffinesse beschreiben |
+| hochmodern | Einen Massstab oder Vergleich nennen |
 
-#### Tier 3 phrases — Flag at density or in clusters
+#### Tier-3-Phrasen — bei Dichte oder im Cluster flaggen
 
-Multi-word boilerplate that's individually unobjectionable but stacks heavily in AI-generated content (crypto, web3, DePIN, AI/infra reviews are the worst offenders). Flag at **2+ uses of the same phrase** (the per-phrase rule — lower threshold than single-word Tier 3 because a two-word match repeated twice is already stronger evidence than re-using "significant"), *plus* a **cluster rule**: three or more *distinct* phrases from this table in one piece is a strong signal even when each phrase only appears once — that's the shape LLMs take when they vary their own boilerplate to seem less repetitive.
+Mehrwort-Boilerplate, die einzeln unauffällig ist, sich aber in KI-generiertem Inhalt stapelt (Krypto, Web3, DePIN, KI-/Infra-Reviews sind die schlimmsten Fälle). Flagge bei **2+ Verwendungen derselben Phrase** (die Pro-Phrase-Regel — niedrigere Schwelle als beim einzelnen Tier-3-Wort, weil eine zweimal wiederholte Mehrwort-Übereinstimmung schon stärker belegt als ein erneutes „bedeutend"), *plus* eine **Cluster-Regel**: drei oder mehr *verschiedene* Phrasen aus dieser Tabelle in einem Text sind ein starkes Signal, selbst wenn jede Phrase nur einmal vorkommt — das ist die Form, die LLMs annehmen, wenn sie ihre eigene Boilerplate variieren, um weniger repetitiv zu wirken.
 
-| Phrase | What to do |
+| Phrase | Was tun |
 |---|---|
-| emerging sector / emerging space / emerging category | Name the actual sector or what's emerging about it |
-| the integration of (X with Y) | Describe what's being integrated and what changes for the user |
-| the intersection of (X and Y) | Pick the specific overlap that matters or cut the framing |
-| community-driven | Name what the community does. "Community-driven" alone is filler |
-| long-term sustainability | Cite the time horizon and the constraint. "Long-term" is hand-waving |
-| user engagement | Name the action. "Engagement" is a wrapper around clicks/comments/retention |
-| decentralized compute | Specify the architecture or cut. The phrase has become a category label, not a claim |
-| (sustainable) reward emissions | Cite the emission schedule and the sink |
-| tokenized incentive structures | Describe the actual mechanism (vesting, gauge, bonded LP, etc.) |
-| designed for long-term [X] | Cut "designed for" — either it is or it isn't. Then state the property |
+| die integration von (X mit Y) | Sagen, was zusammenkommt und was sich für den Nutzer ändert |
+| die schnittstelle von (X und Y) | Die konkrete Überschneidung nennen, die zählt, oder den Rahmen streichen |
+| community-getrieben | Sagen, was die Community konkret tut. „Community-getrieben" allein ist Füllsel |
+| langfristige nachhaltigkeit | Zeithorizont und Bedingung nennen (bis wann, woraus finanziert) |
+| nutzer-engagement | Die konkrete Handlung nennen (Klicks, Kommentare, Verweildauer) |
+| dezentrale rechenleistung | Die Architektur angeben oder streichen. Die Phrase ist zum Kategorie-Etikett geworden, nicht zur Aussage |
+| nachhaltige token-ausschüttungen | Den Ausschüttungsplan und die Senke nennen |
+| tokenisierte anreizstrukturen | Den konkreten Mechanismus beschreiben (Vesting, Gauge, gebundene LP usw.) |
 
-### Template phrases (avoid)
+### Template-Phrasen (vermeiden)
 
-These slot-fill constructions signal that a sentence was generated, not written. If a phrase has a blank where a noun or adjective could go and still sound the same, it's too generic.
+Diese Schablonen-Konstruktionen verraten, dass ein Satz generiert, nicht geschrieben wurde. Hat eine Wendung eine Lücke, in die ein beliebiges Nomen oder Adjektiv passen würde, ohne dass sie anders klänge, ist sie zu generisch.
 
-- "a [adjective] step towards [adjective] AI infrastructure" → describe the specific capability, benchmark, or outcome
-- "a [adjective] step forward for [noun]" → same rule: say what actually changed
-- "Whether you're [X] or [Y]" → false-breadth construction. Pick the audience you're actually addressing, or cut. "Whether you're a startup founder or an enterprise architect" means nothing — it's just "everyone."
-- "I recently had the pleasure of [verb]-ing" → review/social AI pattern. Just say what happened: "I talked to," "I read," "I attended."
+- „ein [Adjektiv] Schritt in Richtung [Adjektiv] KI-Infrastruktur" → die konkrete Fähigkeit, den Massstab oder das Ergebnis beschreiben
+- „ein [Adjektiv] Schritt für [Nomen]" → gleiche Regel: sagen, was sich tatsächlich änderte
+- „Ob Sie nun [X] oder [Y] sind" → Pseudo-Breite-Konstruktion. Wähle das Publikum, das du tatsächlich ansprichst, oder streiche. „Ob Sie nun Start-up-Gründerin oder Konzernarchitekt sind" sagt nichts — es heisst nur „alle".
+- „Ich hatte kürzlich das Vergnügen, zu [Verb]" → Review-/Social-KI-Muster. Sag einfach, was passiert ist: „Letzte Woche war ich an der Konferenz X."
 
-### Transition phrases to remove or rewrite
-- "Moreover" / "Furthermore" / "Additionally" → restructure so the connection is obvious, or use "and," "also," "on top of that"
-- "In today's [X]" / "In an era where" → cut or state specific context
-- "It's worth noting that" / "Notably" → just state the fact
-- "Here's what's interesting" / "Here's what caught my eye" / "Here's what stood out" → reader-steering frames. Let the content signal its own importance. If you need a lead-in, make it specific: "The revenue number matters because..." not "Here's the interesting part."
-- "In conclusion" / "In summary" / "To summarize" → your conclusion should be obvious
-- "When it comes to" → just talk about the thing directly
-- "At the end of the day" → cut
-- "That said" / "That being said" → cut or use "but," "yet," or "however." Don't overuse any one of them.
+### Übergangsphrasen entfernen oder umschreiben
+- „Darüber hinaus" / „Des Weiteren" / „Zudem" / „Ferner" / „Überdies" → so umstrukturieren, dass der Bezug offensichtlich ist, oder „und", „auch", „ausserdem" verwenden
+- „In der heutigen [X]" / „In einer Zeit, in der" → streichen oder den konkreten Kontext nennen
+- „Es ist erwähnenswert, dass" / „Wenn es um … geht" → einfach die Tatsache nennen / direkt über die Sache schreiben
+- „Hier wird es interessant" / „Was mir auffiel" / „Was heraussticht" → Leser-Lenk-Rahmen. Lass den Inhalt seine eigene Bedeutung signalisieren. Brauchst du einen Einstieg, mach ihn konkret: „Die Umsatzzahl zählt, weil…" statt „Hier kommt der interessante Teil".
+- „Zusammenfassend lässt sich sagen" / „Abschliessend lässt sich festhalten" → dein Fazit sollte ohnehin klar sein
+- „Bei der Sache mit" / „Was … betrifft" → sprich einfach direkt über die Sache
+- „Letztendlich" / „Am Ende des Tages" → streichen
+- „Allerdings" / „Gleichwohl" / „Dennoch" → streichen oder „aber", „doch", „jedoch" verwenden. Keines davon überstrapazieren.
 
-### Structural issues
-- **Uniform paragraph length**: Vary deliberately. Include some 1-2 sentence paragraphs and some longer ones. If every paragraph is roughly the same size, fix it.
-- **Formulaic openings**: If the piece opens with broad context before getting to the point ("In the rapidly evolving world of..."), rewrite to lead with the news or the insight. Context can come second.
-- **Suspiciously clean grammar**: Don't sand away all personality. Deliberate fragments, sentences starting with "And" or "But," comma splices for effect: if the natural voice uses them, keep them.
+### Strukturelle Probleme
+- **Gleichförmige Absatzlänge**: Variiere bewusst. Bau einige Ein- bis Zwei-Satz-Absätze und einige längere ein. Ist jeder Absatz ungefähr gleich gross, korrigier das.
+- **Schablonenhafte Einstiege**: Öffnet der Text mit breitem Kontext, bevor er zum Punkt kommt („In der sich rasant verändernden Welt von…"), schreib ihn so um, dass er mit der Neuigkeit oder der Einsicht beginnt. Der Kontext kann danach kommen.
+- **Verdächtig saubere Grammatik**: Schleif nicht jede Persönlichkeit weg. Bewusste Fragmente, Sätze, die mit „Und" oder „Aber" beginnen, Satzbrüche zur Wirkung: Wenn die natürliche Stimme sie nutzt, behalt sie.
 
-### Significance inflation
-- Phrases like "marking a pivotal moment in the evolution of..." or "a watershed moment for the industry" inflate routine events into history-making ones. State what happened and let the reader judge significance.
-- If the sentence still works after you delete the inflation clause, delete it.
+### Bedeutungs-Aufblähung
+- Wendungen wie „markiert einen Wendepunkt in der Entwicklung von…" oder „ein Meilenstein für die Branche" blähen Routineereignisse zu geschichtsträchtigen auf. Sag, was passiert ist, und lass den Leser die Bedeutung beurteilen.
+- Funktioniert der Satz noch, nachdem du die Aufblähungs-Klausel gelöscht hast, lösch sie.
 
-### Generic future-narrative closers
-- "May become one of the most important narratives of the next market cycle," "could become the defining trend of the coming decade," "is poised to become the next major chapter in [X]." AI defaults to this shape when it needs to land a closing thought without committing to a falsifiable claim. The closer is grammatically a prediction but contains no testable content.
-- Pattern: modal (may / could / will / is poised to) + "become" + (one of) the most [adjective] + (narrative / story / trend / theme / chapter / movement / force).
-- Fix: pick the falsifiable version. "DePIN compute may exceed AWS spot pricing for embarrassingly parallel workloads by 2027" is a prediction. "The intersection of AI and DePIN may become one of the most important narratives of the next market cycle" is not.
+### Generische Zukunfts-Schlüsse
+- „Es bleibt abzuwarten, wie sich das entwickelt", „könnte zum prägenden Trend des kommenden Jahrzehnts werden", „dürfte zum nächsten grossen Kapitel von [X] werden". KI greift auf diese Form zurück, wenn sie einen Schlussgedanken landen muss, ohne sich auf eine prüfbare Aussage festzulegen. Der Schluss ist grammatisch eine Prognose, enthält aber keinen testbaren Inhalt.
+- Muster: Modal (könnte / dürfte / wird / mag) + „werden" + (eines von) der wichtigsten/bedeutendsten [Adjektiv] + (Narrative / Geschichte / Trend / Thema / Kapitel / Entwicklung).
+- Fix: Wähle die falsifizierbare Variante. „DePIN-Rechenleistung könnte für massiv parallele Lasten bis 2027 günstiger sein als AWS-Spot-Preise" ist eine Prognose. „Die Schnittstelle von KI und DePIN könnte zu einem der wichtigsten Narrative des nächsten Marktzyklus werden" ist keine.
 
-### Hedge-stacked predictions
-- Stacking a modal with a hedge adverb: "could potentially create," "may eventually unlock," "might ultimately transform." Either word alone is acceptable; the stack is the tell. Each hedge cancels the next, leaving a sentence that asserts nothing while sounding cautious and thoughtful.
-- Fix: pick one. If you mean "could create," say that. If you mean "potentially creates," say that. Both together is filler.
+### Gestapelte Absicherungen in Prognosen
+- Ein Modalverb mit einem Hedge-Adverb stapeln: „könnte möglicherweise", „dürfte letztlich", „mag eventuell". Jedes Wort allein ist akzeptabel; der Stapel ist das Tell. Jede Absicherung hebt die nächste auf und lässt einen Satz zurück, der nichts behauptet, aber vorsichtig und bedacht klingt.
+- Fix: Wähle eines. Meinst du „könnte schaffen", sag das. Meinst du „schafft möglicherweise", sag das. Beides zusammen ist Füllsel.
 
-### "Real/actual" adjective inflation
-- "Real on-chain tokenomics," "actual reward sustainability," "genuine utility," "true product-market fit." Using `real` / `actual` / `genuine` / `true` as an empty intensifier on an abstract noun implies the rest of the field is fake or superficial — without naming what makes this instance the real one. Common in crypto/AI/web3 content where the writer wants to signal sophistication.
-- Distinct from the existing "hollow intensifiers" rule (genuine / truly / quite frankly as sentence-level hedges). This is the noun-modifier form, where the intensifier latches onto an abstract noun to manufacture a contrast that goes unsaid.
-- **Carve-out — named contrast:** if the sentence explicitly names what the fake/superficial version is, leave it. "Real on-chain settlement, not bridged IOUs" or "actual revenue from paying customers, not grants" is honest contrastive writing. The AI tell is the unsaid contrast.
-- Fix when no contrast is named: drop the adjective and add the specific claim. "Reward sustainability" → "rewards funded from $X/mo in fees rather than emissions."
+### „Echt/tatsächlich"-Adjektiv-Aufblähung
+- „echte On-Chain-Tokenomics", „tatsächliche Belohnungs-Nachhaltigkeit", „echter Nutzen", „wahre Produkt-Markt-Passung". `echt` / `tatsächlich` / `wahr` als leerer Verstärker vor einem abstrakten Nomen unterstellt, der Rest des Felds sei unecht oder oberflächlich — ohne zu benennen, was diesen Fall zum echten macht. Häufig in Krypto-/KI-/Web3-Texten, wo die schreibende Person Raffinesse signalisieren will.
+- Unterscheidet sich von der „hohle Verstärker"-Regel (wirklich / ehrlich gesagt / seien wir ehrlich als Satz-Absicherungen). Das hier ist die Nomen-Modifikator-Form, bei der sich der Verstärker an ein abstraktes Nomen heftet, um einen ungesagten Kontrast zu erzeugen.
+- **Carve-out — benannter Kontrast:** Nennt der Satz ausdrücklich, was die unechte/oberflächliche Variante ist, lass ihn stehen. „Echte On-Chain-Abwicklung, keine gebrückten Schuldscheine" oder „tatsächlicher Umsatz von zahlenden Kunden, keine Fördergelder" ist ehrliches Kontrast-Schreiben. Das KI-Tell ist der ungesagte Kontrast.
+- Fix, wenn kein Kontrast benannt ist: Streiche das Adjektiv und ergänze die konkrete Aussage. „Belohnungs-Nachhaltigkeit" → „Belohnungen finanziert aus X CHF/Monat an Gebühren statt aus Ausschüttungen".
 
-### Hashtag stuffing
-- Long trailing hashtag blocks (6+ hashtags on a single short post) are near-universal in LLM-generated social content and rare in thoughtful human posts. The block usually mixes a project-specific tag with broad category tags (#AI #Crypto #Web3 #Innovation #FutureTech #Technology) — the categorical ones do nothing for discoverability and read as bot output.
-- **Why 6?** Empirical floor. LinkedIn and X organic engagement plateaus or declines past 3-5 tags; human posts that exceed 5 are usually launch posts trading reach for engagement, while LLM-generated posts default to 10-15. Six is the threshold where false positives on legitimate human use start dropping below false negatives on AI output. The detector treats 6+ as a hard flag; the spec treats 5+ as a soft tell worth a second look on `linkedin` and `investor-email` profiles.
-- Fix: 2-3 specific tags max, or none. If a hashtag wouldn't help a reader find related work, it's filler.
+### Hashtag-Stopfen
+- Lange Hashtag-Blöcke am Ende (6+ Hashtags auf einem einzelnen kurzen Post) sind in LLM-generiertem Social-Content nahezu universell und in durchdachten menschlichen Posts selten. Der Block mischt meist einen projektspezifischen Tag mit breiten Kategorie-Tags (#KI #Krypto #Web3 #Innovation #ZukunftTech #Technologie) — die kategorischen tun nichts für die Auffindbarkeit und lesen sich wie Bot-Ausgabe.
+- **Warum 6?** Empirische Untergrenze. Organische Reichweite auf LinkedIn und X stagniert oder sinkt ab 3–5 Tags; menschliche Posts über 5 sind meist Launch-Posts, die Reichweite gegen Engagement tauschen, während LLM-generierte Posts standardmässig 10–15 setzen. Sechs ist die Schwelle, ab der Falsch-Positive bei legitimer menschlicher Nutzung unter die Falsch-Negative bei KI-Ausgabe sinken. Der Detector behandelt 6+ als harten Treffer; die Spec behandelt 5+ als weiches Tell, das auf `linkedin`- und `investor-email`-Profilen einen zweiten Blick wert ist.
+- Fix: höchstens 2–3 konkrete Tags, oder keine. Hilft ein Hashtag dem Leser nicht, verwandte Arbeit zu finden, ist er Füllsel.
 
-### Bullet lists of bare noun phrases
-- A list of 5+ consecutive bullet items where each item is a short (≤6 word) adjective-plus-noun phrase with no verb. "Stable mining efficiency / Reliable pool connectivity / Optimized RandomX performance / Low failed share rates / Effective hardware utilization / Consistent thermal stability." Reads as a marketing one-pager because that's the shape LLMs default to when asked to summarize features.
-- The tell is the *symmetry*: every item is the same grammatical shape, every item is parallel in length, none of them assert anything checkable. A genuine list of observations would have varying length, occasional verbs, and at least one item that doesn't fit the pattern.
-- Fix: convert to prose paragraph, or rewrite items as full claims ("Failed shares stayed under 1% across a 12-hour run" beats "Low failed share rates"). If the list is genuinely the right form, vary the items so each carries a different shape of information.
-- This rule does *not* apply to genuine list content (changelog entries, todo lists, parameter docs, ingredient lists) where bare noun phrases are the correct form. The detector keys on absence of finite verbs to separate the two — but in prose audits, ask whether the bullets are summarizing claims (rewrite) or enumerating items (leave).
+### Aufzählungslisten aus blossen Nominalphrasen
+- Eine Liste aus 5+ aufeinanderfolgenden Punkten, bei der jeder Punkt eine kurze (≤6 Wörter) Adjektiv-plus-Nomen-Phrase ohne Verb ist. „Stabile Mining-Effizienz / Zuverlässige Pool-Verbindung / Optimierte RandomX-Leistung / Geringe Quote fehlgeschlagener Shares / Effiziente Hardware-Nutzung / Konstante Temperatur-Stabilität." Liest sich wie ein Marketing-Einseiter, weil das die Form ist, die LLMs annehmen, wenn sie Features zusammenfassen sollen.
+- Das Tell ist die *Symmetrie*: jeder Punkt hat dieselbe grammatische Form, jeder ist gleich lang, keiner behauptet etwas Prüfbares. Eine echte Liste von Beobachtungen hätte unterschiedliche Längen, hin und wieder Verben und mindestens einen Punkt, der aus dem Muster fällt.
+- Fix: in einen Fliesstext-Absatz umwandeln oder die Punkte als vollständige Aussagen umschreiben („Fehlgeschlagene Shares blieben über einen 12-Stunden-Lauf unter 1 %" schlägt „Geringe Quote fehlgeschlagener Shares"). Ist die Liste tatsächlich die richtige Form, variiere die Punkte, damit jeder eine andere Art von Information trägt.
+- Diese Regel gilt *nicht* für echten Listen-Inhalt (Changelog-Einträge, To-do-Listen, Parameter-Dokus, Zutatenlisten), wo blosse Nominalphrasen die korrekte Form sind. Der Detector achtet auf das Fehlen finiter Verben, um die beiden zu trennen — aber frag in Prosa-Audits, ob die Punkte Aussagen zusammenfassen (umschreiben) oder Dinge aufzählen (stehen lassen).
 
-### Copula avoidance
-- AI text avoids "is" and "has" by substituting fancier verbs: "serves as," "features," "boasts," "presents," "represents." These sound like a press release.
-- Default to "is" or "has" unless a more specific verb genuinely adds meaning.
+### Kopula-Vermeidung
+- KI-Text meidet „ist" und „hat", indem er aufgemotzte Verben einsetzt: „dient als", „verfügt über", „präsentiert", „stellt dar". Das klingt nach Pressemitteilung.
+- Greife auf „ist" oder „hat" zurück, ausser ein konkreteres Verb fügt echt Bedeutung hinzu.
 
-### Synonym cycling
-- AI rotates synonyms to avoid repeating a word: "developers… engineers… practitioners… builders" in the same paragraph. Human writers repeat the clearest word.
-- If the same noun or verb appears three times in a paragraph and that's the right word, keep all three. Forced variation reads as thesaurus abuse.
+### Synonym-Wechsel
+- KI rotiert Synonyme, um ein Wort nicht zu wiederholen: „Entwickler… Ingenieurinnen… Fachleute… Bauende" im selben Absatz. Menschliche Autoren wiederholen das klarste Wort.
+- Taucht dasselbe Nomen oder Verb dreimal im Absatz auf und ist das das richtige Wort, behalt alle drei. Erzwungene Variation liest sich wie Thesaurus-Missbrauch.
 
-### Vague attributions
-- "Experts believe," "Studies show," "Research suggests," "Industry leaders agree" — without naming the expert, study, or leader. Either cite a specific source or drop the attribution and state the claim directly.
+### Vage Quellenangaben
+- „Experten glauben", „Studien zeigen", „Forschung legt nahe", „Branchenführer sind sich einig" — ohne den Experten, die Studie oder den Führer zu nennen. Entweder eine konkrete Quelle nennen oder die Zuschreibung streichen und die Behauptung direkt aufstellen.
 
-### Filler phrases
-- Strip mechanical padding that adds words without meaning:
-  - "It is important to note that" → (just state it)
-  - "In terms of" → (rewrite)
-  - "The reality is that" → (cut or just state the claim)
-- Note: "In order to," "Due to the fact that," and "At the end of the day" are covered in the word/phrase table and transition sections above — don't duplicate rules.
+### Füllphrasen
+- Streiche mechanisches Polster, das Wörter ohne Bedeutung hinzufügt:
+  - „Es ist wichtig zu beachten, dass" → (sag es einfach)
+  - „Im Hinblick auf" / „In Bezug auf" → (umschreiben)
+  - „Tatsache ist, dass" → (streichen oder die Behauptung einfach aufstellen)
+- Hinweis: „Letztendlich" und „Am Ende des Tages" sind oben in den Übergangsabschnitten abgedeckt — keine Regeln doppeln.
 
-### Generic conclusions
-- "The future looks bright," "Only time will tell," "One thing is certain," "As we move forward" — these are filler disguised as conclusions. Cut them. If the piece needs a closing thought, make it specific to the argument.
+### Generische Schlüsse
+- „Die Zukunft sieht rosig aus", „Nur die Zeit wird zeigen", „Eines ist sicher", „Wenn wir nach vorne blicken" — das ist Füllsel, getarnt als Schluss. Streiche es. Braucht der Text einen Schlussgedanken, mach ihn konkret zum Argument.
 
-### Chatbot artifacts
-- "I hope this helps!", "Certainly!", "Absolutely!", "Great question!", "Feel free to reach out," "Let me know if you need anything else" — these are conversational tics from chat interfaces, not writing. Remove entirely.
-- Also watch for: "In this article, we will explore…" or "Let's dive in!" — these are AI-generated meta-narration. Cut or rewrite with a direct opening.
+### Chatbot-Artefakte
+- „Ich hoffe, das hilft dir weiter!", „Gerne!", „Natürlich!", „Grossartige Frage!", „Melde dich gern", „Zögere nicht, mich zu kontaktieren" — das sind Gesprächs-Tics aus Chat-Oberflächen, kein geschriebener Text. Ganz entfernen.
+- Achte auch auf: „In diesem Artikel werden wir untersuchen…" oder „Tauchen wir ein!" — das ist KI-generierte Meta-Narration. Streichen oder mit einem direkten Einstieg umschreiben.
 
-### "Let's" constructions
-- "Let's explore," "Let's take a look," "Let's break this down," "Let's examine" — AI uses "let's" as a false-collaborative opener to ease into a topic. It's filler that delays the actual point. Just start with the point. "Let's dive in" is covered above under chatbot artifacts, but the pattern is broader than that — flag any "let's + verb" that's functioning as a transition rather than a genuine invitation to act.
+### „Lass uns"-Konstruktionen
+- „Lass uns erkunden", „Schauen wir uns das an", „Lass uns das aufschlüsseln", „Betrachten wir" — KI nutzt „lass uns" als falsch-kollaborativen Einstieg, um sich an ein Thema heranzutasten. Das ist Füllsel, das den eigentlichen Punkt verzögert. Fang einfach mit dem Punkt an. „Tauchen wir ein" ist oben unter Chatbot-Artefakten abgedeckt, aber das Muster ist breiter — flagge jedes „lass uns + Verb", das als Übergang statt als echte Aufforderung zum Handeln dient.
 
-### Notability name-dropping
-- AI text piles on prestigious citations to manufacture credibility: "cited in The New York Times, BBC, Financial Times, and The Hindu." If a source matters, use it with context: "In a 2024 NYT interview, she argued..." One specific reference beats four name-drops.
+### Prominenz-Namedropping
+- KI-Text häuft prestigeträchtige Zitate an, um Glaubwürdigkeit zu fingieren: „zitiert in der NZZ, der Tagesschau, der Financial Times und dem Tages-Anzeiger". Zählt eine Quelle, nutze sie mit Kontext: „In einem NZZ-Interview von 2024 argumentierte sie…". Eine konkrete Referenz schlägt vier Namedrops.
 
-### Superficial -ing analyses
-- Strings of present participles used as pseudo-analysis: "symbolizing the region's commitment to progress, reflecting decades of investment, and showcasing a new era of collaboration." These say nothing. Replace with specific facts or cut entirely.
-- The same move shows up without the -ing: declarative "meaning-telling" that glosses a mundane subject as if it were profound — "this represents a broader shift," "the decision symbolizes a commitment to excellence," "it speaks to a larger trend in the industry." If the significance is real, show it with a specific consequence; otherwise cut. Adapted from `Aboudjem/humanizer-skill` P40.
+### Oberflächliche Partizip-Analysen
+- Ketten von Partizipien als Pseudo-Analyse: „die das Bekenntnis der Region zum Fortschritt symbolisierend, Jahrzehnte der Investition widerspiegelnd und eine neue Ära der Zusammenarbeit aufzeigend". Das sagt nichts. Ersetze durch konkrete Fakten oder streiche ganz.
+- Derselbe Zug zeigt sich auch ohne Partizip: deklaratives „Bedeutungs-Verkünden", das ein banales Thema bedeutsam glossiert — „das steht für einen breiteren Wandel", „die Entscheidung symbolisiert ein Bekenntnis zur Exzellenz", „es spricht für einen grösseren Trend in der Branche". Ist die Bedeutung echt, zeig sie mit einer konkreten Folge; sonst streichen. Angelehnt an `Aboudjem/humanizer-skill` P40.
 
-### Promotional language
-- AI defaults to tourism-brochure prose: "nestled within the breathtaking foothills," "a vibrant hub of innovation," "a thriving ecosystem." Replace with plain description: "is a town in the Gonder region," "has 12 startups." If you wouldn't say it in conversation, cut it.
+### Werbesprache
+- KI greift auf Prospekt-Prosa zurück: „eingebettet in die atemberaubenden Ausläufer", „ein pulsierendes Innovationszentrum", „ein florierendes Ökosystem". Ersetze durch schlichte Beschreibung: „ist ein Dorf in der Region Gonder", „hat 12 Start-ups". Würdest du es im Gespräch nicht sagen, streich es.
 
-### Formulaic challenges
-- "Despite challenges, [subject] continues to thrive" or "While facing headwinds, the organization remains resilient." This is a non-statement. Name the actual challenge and the actual response, or cut the sentence.
+### Schablonenhafte Herausforderungen
+- „Trotz Herausforderungen floriert [Subjekt] weiter" oder „Trotz Gegenwinds bleibt die Organisation widerstandsfähig". Das ist eine Nicht-Aussage. Nenn die konkrete Herausforderung und die konkrete Antwort, oder streiche den Satz.
 
-### False ranges
-- AI creates false breadth by pairing unrelated extremes: "from the Big Bang to dark matter," "from ancient civilizations to modern startups." These sound sweeping but say nothing. List the actual topics or pick the one that matters.
+### Falsche Spannweiten
+- KI erzeugt falsche Breite, indem sie unverbundene Extreme paart: „vom Urknall bis zur dunklen Materie", „von antiken Kulturen bis zu modernen Start-ups". Das klingt umfassend, sagt aber nichts. Liste die tatsächlichen Themen oder wähle das eine, das zählt.
 
-### Inline-header lists
-- Bullet lists where each item starts with a bold header that repeats itself: "**Performance:** Performance improved by..." Strip the bold header and write the point directly. If the list items need headers, they should probably be paragraphs.
+### Inline-Header-Listen
+- Aufzählungslisten, bei denen jeder Punkt mit einem fetten Header beginnt, der sich selbst wiederholt: „**Leistung:** Die Leistung verbesserte sich um…". Streiche den fetten Header und schreib den Punkt direkt. Brauchen die Listenpunkte Header, sollten es wohl Absätze sein.
 
-### Title case headings
-- AI over-capitalizes headings: "Strategic Negotiations And Key Partnerships" instead of "Strategic negotiations and key partnerships." Use sentence case for subheadings. Title case only for the piece's main title, if at all.
+### Nominalstil und Funktionsverbgefüge
+- KI-Texte ersetzen das Vollverb durch ein Funktionsverbgefüge: „zur Verfügung stellen" statt „geben", „in Anspruch nehmen" statt „nutzen", „zum Einsatz kommen" statt „verwenden", „zur Anwendung kommen" statt „anwenden", „unter Beweis stellen" statt „zeigen", „eine entscheidende Rolle spielen" statt „ist wichtig für", „einen Beitrag leisten" statt „beitragen", „von grosser Bedeutung sein" statt „ist wichtig".
+- Verwandt ist die Streck-Nominalisierung mit `-ung`-Substantiv plus „von": „die Durchführung von Tests" statt „Tests durchführen". Das `-ung`-Substantiv plus „von/der/des" bläht den Satz auf und ist ein Leitsymptom des KI-Nominalstils.
+- Das Problem ist die Häufung: ein einzelnes Funktionsverbgefüge ist normales Amtsdeutsch, aber mehrere in Folge sind das Tell. Fix: aktiv und mit dem Vollverb formulieren. „Wir stellen Ihnen die Daten zur Verfügung" → „Wir geben Ihnen die Daten."
 
-### Hyphenated-pair overuse
-- AI stacks compound modifiers: "a high-quality, well-architected, future-proof solution." Two distinct problems. First, density — strings of hyphenated adjectives piled on one noun; cut to the modifier that actually matters. Second, the attributive/predicate error: a compound is hyphenated *before* the noun ("a high-quality report") but not *after* a linking verb ("the report is high quality," no hyphen). AI frequently hyphenates the predicate form; fix it to two words. Adapted from `blader/humanizer` P26.
+### Passivlastigkeit
+- KI-Texte häufen das unpersönliche Passiv, besonders mit „es wird" / „es sollte": „es wird empfohlen, dass", „es sollte beachtet werden", „es wird davon ausgegangen, dass". Das meidet Subjekt und Verantwortung und erzeugt den distanziert-vagen KI-Ratgeber-Ton.
+- Ein einzelnes Passiv ist legitim (wenn der Urheber unbekannt oder unwichtig ist). Das Tell ist die Häufung subjektloser „es wird/es sollte"-Konstruktionen, oft gekoppelt mit vager Quellenangabe.
+- Fix: ins Aktiv setzen und den Urheber nennen. „Es wird empfohlen, dass" → „Wir empfehlen" oder „Empfehlenswert ist". „Es sollte beachtet werden" → „Beachte" oder „Wichtig ist".
 
-### Cutoff disclaimers
-- "While specific details are limited based on available information," "As of my last update," "I don't have access to real-time data." These are model limitations leaking into prose. Either find the information or remove the hedge. Never publish a sentence that admits the writer didn't look something up.
+### Cutoff-Disclaimer
+- „Soweit auf Basis der verfügbaren Informationen ersichtlich", „Stand meines letzten Updates", „Ich habe keinen Zugriff auf Echtzeitdaten", „Als KI-Sprachmodell". Das sind Modell-Einschränkungen, die in die Prosa durchsickern. Entweder die Information finden oder die Absicherung entfernen. Veröffentliche nie einen Satz, der zugibt, dass etwas nicht nachgeschlagen wurde.
 
-### Speculative gap-filling
-- When the model lacks a fact, it fills the gap with hedged speculation dressed up as background: "maintains a relatively low public profile," "is believed to have," "likely began his career in," "appears to have studied." These are guesses formatted as statements. Distinct from cutoff disclaimers, which *admit* the gap — this one hides it behind plausible-sounding filler, which is worse because the reader can't tell what's known from what's invented. Cut the speculation, or replace it with a sourced fact. Adapted from `blader/humanizer` P21.
+### Spekulatives Lückenfüllen
+- Wenn dem Modell ein Fakt fehlt, füllt es die Lücke mit abgesicherter Spekulation, aufgemacht als Hintergrund: „hält ein relativ geringes öffentliches Profil", „soll angeblich", „begann vermutlich seine Karriere bei", „scheint studiert zu haben". Das sind Vermutungen, formatiert als Aussagen. Unterscheidet sich vom Cutoff-Disclaimer, der die Lücke *zugibt* — dieser versteckt sie hinter plausibel klingendem Füllsel, was schlimmer ist, weil der Leser Bekanntes nicht von Erfundenem trennen kann. Streiche die Spekulation oder ersetze sie durch einen belegten Fakt. Angelehnt an `blader/humanizer` P21.
 
-### Novelty inflation
-- AI text treats established concepts as if the speaker invented or discovered them: "He introduced a term," "She coined the phrase," "a concept nobody's naming," "a failure mode nobody talks about." In reality, most ideas in a conversation are applications of existing concepts, not inventions.
-- Two problems. First, it's factually risky: if the concept already has a Wikipedia page or conference talks from last year, claiming novelty makes the writer look uninformed. Second, it flatters the subject in a way that reads as promotional rather than analytical.
-- The fix: describe what the person *did with* the concept, not that they discovered it. "Michel walked through how context poisoning works in practice" instead of "Michel introduced a term I hadn't heard before: context poisoning." If you're unsure whether something is novel, assume it isn't and frame accordingly.
-- Related patterns to flag: "the failure mode nobody's naming," "a problem nobody talks about," "the insight everyone's missing," "what nobody tells you about." These are engagement-bait framings that claim scarcity of knowledge where none exists.
+### Nicht ausgefüllte Platzhalter
+- Eckige-Klammer-Slots, die vor der Veröffentlichung hätten ersetzt werden sollen: `[Ihr Name]`, `[QUELLE EINFÜGEN]`, `[Firmenname]`, `[Beschreibe den konkreten Abschnitt]`, `TT.MM.JJJJ`, `<!-- Quelle ergänzen, falls vorhanden -->`. Das ist nahezu definitiver Beleg, dass KI-generierte Boilerplate ungeprüft eingefügt wurde. Menschen nutzen auch Platzhalter in Vorlagen, liefern sie aber selten aus. Behandle jeden sichtbaren Platzhalter als Veröffentlichungsfehler: mit echtem Inhalt füllen oder den Satz ganz löschen.
+- Fang die offensichtlichen Formen ab: `\[(?:Ihr|Dein|Euer|Name|Quelle|Firmenname|Empfänger|Betreff|EINFÜGEN|EINTRAGEN|AUSFÜLLEN|HINZUFÜGEN)[^\]]*\]`, `\bTT\.MM\.(?:JJJJ|JJ)\b`, HTML-/Markdown-Kommentare mit Platzhalter-Verben (`ergänzen`, `ausfüllen`, `todo`, `einfügen`).
 
-### Infomercial engagement hooks
-- Punchy fragment-hooks that tee up a reveal: "The catch?", "The kicker?", "Here's the thing.", "But here's the kicker:", "The best part?", "Plot twist:", "The result?". AI uses these to fake momentum and manufacture suspense around ordinary information — the prose equivalent of a late-night infomercial.
-- Distinct from rhetorical-question openers (which stall before a point) and chatbot artifacts (which perform helpfulness): these are mid-flow teasers that pad the rhythm. The fix is to delete the hook and state the thing. "The catch? It only works on weekends." becomes "It only works on weekends." Adapted from `Aboudjem/humanizer-skill` P41.
+### Chatbot-Zitations-Markup-Lecks
+- Interne Zitations-Tokens, die durchsickern, wenn Text aus Chat-Oberflächen kopiert wird: `citeturn0search0`, `contentReference[oaicite:0]{index=0}`, `oai_citation`, `[attached_file:1]`, `grok_card`. Das sind keine Muster — das sind Fingerabdrücke. Ihre Anwesenheit ist im Grunde der Beweis, dass der Text von einem bestimmten Chat-Tool generiert und ungeprüft eingefügt wurde.
+- Der Fix ist mechanisch: jedes Markup-Token entfernen. War ein Zitat sinnvoll, ersetze es durch eine echte Referenz. Versuch nicht, das Markup zu humanisieren — lösche es.
+- Angelehnt an `Aboudjem/humanizer-skill` P34. Wert, das zu fangen, selbst wenn sonst nichts im Text nach KI klingt — das Token allein genügt.
 
-### Emotional flatline
-- AI claims emotions as a structural crutch without conveying them through the writing: "What surprised me most," "I was fascinated to discover," "What struck me was," "I was excited to learn," "The most interesting part," and the bare section-header variant: "Interesting part of the project:" / "Interesting thing here:" / "Interesting aspect:". The header form drops "the most" but does the same job — pre-announcing significance the writing hasn't earned.
-- Two problems. First, it's tell-don't-show: if the thing is genuinely surprising, the reader should feel that from the content, not from the writer announcing it. Second, these phrases are massively overused as list introductions and transitions. They're filler wearing an emotion costume.
-- This pattern isn't always AI. It's also a sign of lazy human writing on autopilot. Flag it either way.
-- The fix isn't "never say surprised." It's: if you claim an emotion, the writing around it should earn it. Otherwise cut the claim and present the thing directly.
-- Related pattern: "hit differently" / "hits different." AI uses trendy colloquialisms as a shortcut to sound relatable without earning the emotional beat. If something genuinely affected you, describe how. Otherwise cut.
+### KI-Tool-URL-Parameter
+- Tracking-Parameter, die KI-Tools an generierte URLs anhängen und die das Kopieren in veröffentlichten Inhalt überleben: `utm_source=chatgpt.com`, `utm_source=copilot.com`, `utm_source=openai`, `utm_source=claude.ai`, `utm_source=perplexity.ai`, `referrer=grok.com`. Gleiche Logik wie bei Zitations-Markup-Lecks — die Anwesenheit des Parameters ist die Signatur, egal wie der umgebende Text liest.
+- Der Fix: den Parameter aus jeder URL entfernen. Behalte die URL, wenn der Link sinnvoll ist; verliere nur den Parameter. Angelehnt an `Aboudjem/humanizer-skill` P35.
 
-### False concession structure
-- "While X is impressive, Y remains a challenge" or "Although X has made strides, Y is still an open question." AI uses this to sound balanced without actually weighing anything. Both halves are vague. Either make the concession specific (name what's impressive, name the actual challenge) or pick a side and argue it.
+### Neuheits-Aufblähung
+- KI-Text behandelt etablierte Konzepte, als hätte die sprechende Person sie erfunden oder entdeckt: „Er führte einen Begriff ein", „Sie prägte die Wendung", „ein Konzept, das niemand benennt", „eine Fehlerart, über die niemand spricht". In Wahrheit sind die meisten Ideen in einem Gespräch Anwendungen bestehender Konzepte, keine Erfindungen.
+- Zwei Probleme. Erstens ist es faktisch riskant: Hat das Konzept schon einen Wikipedia-Eintrag oder Konferenzvorträge vom letzten Jahr, lässt der Neuheits-Anspruch die schreibende Person uninformiert wirken. Zweitens schmeichelt es dem Thema werblich statt analytisch.
+- Der Fix: beschreiben, was die Person *mit* dem Konzept tat, nicht dass sie es entdeckte. „Michel führte durch, wie Kontext-Vergiftung in der Praxis funktioniert" statt „Michel führte einen Begriff ein, den ich noch nicht kannte: Kontext-Vergiftung". Bist du unsicher, ob etwas neu ist, nimm an, dass es das nicht ist, und formuliere entsprechend.
+- Verwandte Muster zum Flaggen: „die Fehlerart, die niemand benennt", „ein Problem, über das niemand spricht", „die Einsicht, die alle übersehen", „was dir niemand sagt". Das sind Aufmerksamkeits-Köder, die eine Wissensknappheit behaupten, wo keine besteht.
 
-### Rhetorical question openers
-- "But what does this mean for developers?" / "So why should you care?" / "What's next?" � AI uses rhetorical questions to stall before the actual point. If you know the answer, just say it. Rhetorical questions are earned by strong setup, not dropped as section transitions.
+### Infomercial-Engagement-Köder
+- Knackige Fragment-Köder, die eine Enthüllung anstossen: „Der Haken?", „Der Clou?", „Und jetzt kommt's.", „Aber jetzt kommt der Clou:", „Das Beste daran?", „Überraschung:", „Das Ergebnis?". KI nutzt das, um Schwung zu fingieren und Spannung um gewöhnliche Information zu erzeugen — das Prosa-Pendant zur Dauerwerbesendung.
+- Unterscheidet sich von rhetorischen Frage-Einstiegen (die vor einem Punkt verzögern) und Chatbot-Artefakten (die Hilfsbereitschaft aufführen): das hier sind Teaser mitten im Fluss, die den Rhythmus polstern. Der Fix ist, den Köder zu löschen und die Sache zu nennen. „Der Haken? Es klappt nur am Wochenende." wird zu „Es klappt nur am Wochenende." Angelehnt an `Aboudjem/humanizer-skill` P41.
 
-### Parenthetical hedging
-- "(and, increasingly, Z)" / "(or, more precisely, Y)" / "(and perhaps more importantly, W)" � AI inserts parenthetical asides to sound nuanced without committing. If the aside matters, give it its own sentence. If it doesn't, cut it.
+### Emotionale Flachheit
+- KI behauptet Emotionen als strukturelle Krücke, ohne sie durch den Text zu vermitteln: „Was mich am meisten überrascht hat", „Ich war fasziniert zu entdecken", „Was mich beeindruckt hat", „Besonders spannend war", „Der interessanteste Teil", und die blosse Abschnitts-Header-Variante: „Interessanter Teil des Projekts:" / „Interessant dabei:" / „Interessanter Aspekt:". Die Header-Form lässt „der interessanteste" weg, tut aber dasselbe — sie kündigt eine Bedeutung an, die der Text nicht eingelöst hat.
+- Zwei Probleme. Erstens ist es Erzählen-statt-Zeigen: Ist die Sache echt überraschend, sollte der Leser das aus dem Inhalt spüren, nicht weil die schreibende Person es ankündigt. Zweitens sind diese Wendungen massiv als Listen-Einleitungen und Übergänge überbeansprucht. Sie sind Füllsel im Emotions-Kostüm.
+- Dieses Muster ist nicht immer KI. Es ist auch ein Zeichen fauler menschlicher Routine. Flagge es so oder so.
+- Der Fix ist nicht „nie überrascht sagen". Er ist: Behauptest du eine Emotion, sollte der Text drumherum sie einlösen. Sonst streiche die Behauptung und präsentiere die Sache direkt.
 
-### Numbered list inflation
-- "Three key takeaways" / "Five things to know" / "Here are the top seven" � AI defaults to numbered lists because they're structurally safe. Only use numbered lists when the content genuinely has that many discrete, parallel items. If you're padding to hit a number, the list shouldn't exist.
+### Falsche Zugeständnis-Struktur
+- „Zwar ist X beeindruckend, doch Y bleibt eine Herausforderung" oder „Obwohl X Fortschritte gemacht hat, ist Y weiterhin offen". KI nutzt das, um ausgewogen zu klingen, ohne tatsächlich abzuwägen. Beide Hälften sind vage. Mach entweder das Zugeständnis konkret (nenn, was beeindruckend ist, nenn die echte Herausforderung) oder beziehe Stellung und argumentiere sie.
 
-### Reasoning chain artifacts
-- "Let me think step by step," "Breaking this down," "To approach this systematically," "Step 1:," "Here's my thought process," "First, let's consider," "Working through this logically" — these are artifacts of chain-of-thought reasoning leaking into published prose. The reader doesn't need to see the scaffolding. State the conclusion, then the evidence.
-- Also watch for numbered reasoning steps that read like an internal monologue rather than an argument meant for an audience.
+### Rhetorische Frage-Einstiege
+- „Aber was bedeutet das für Entwickler?" / „Warum sollte dich das interessieren?" / „Wie geht es nun weiter?" — KI nutzt rhetorische Fragen, um vor dem eigentlichen Punkt zu verzögern. Kennst du die Antwort, sag sie einfach. Rhetorische Fragen verdient man sich durch starken Aufbau, man wirft sie nicht als Abschnitts-Übergänge ein.
 
-### Sycophantic tone
-- "Great question!", "Excellent point!", "You're absolutely right!", "That's a really insightful observation" — these are conversational rewards from chat interfaces, not writing. Remove entirely.
-- Distinct from chatbot artifacts: sycophancy specifically validates the reader/questioner rather than just performing helpfulness.
+### Parenthetisches Absichern
+- „(und zunehmend auch Z)" / „(oder genauer gesagt, Y)" / „(und vielleicht noch wichtiger, W)" — KI schiebt parenthetische Einschübe ein, um nuanciert zu klingen, ohne sich festzulegen. Zählt der Einschub, gib ihm einen eigenen Satz. Zählt er nicht, streiche ihn.
 
-### Acknowledgment loops
-- "You're asking about," "The question of whether," "To answer your question," "That's a great question. The..." — AI restates the prompt before answering. In writing, this is pure filler. The reader knows what they asked. Just answer.
-- Related pattern: opening a section by summarizing what the previous section said. If the structure is clear, the reader doesn't need a recap.
+### Nummerierte-Listen-Aufblähung
+- „Drei zentrale Erkenntnisse" / „Fünf Dinge, die du wissen musst" / „Hier sind die Top sieben" — KI greift standardmässig zu nummerierten Listen, weil sie strukturell sicher sind. Nutze nummerierte Listen nur, wenn der Inhalt echt so viele eigenständige, parallele Punkte hat. Polsterst du, um eine Zahl zu erreichen, sollte die Liste nicht existieren.
 
-### Confidence calibration phrases
-- "It's worth noting that," "Interestingly," "Surprisingly," "Importantly," "Significantly," "Notably," "Certainly," "Undoubtedly," "Without a doubt" — AI uses these to signal how the reader should feel about a fact instead of letting the fact speak for itself.
-- "Here's what's interesting," "Here's the interesting part," "Here are the parts I found interesting" — reader-steering cue that pre-interprets importance. Works when followed by genuinely surprising data; fails when it introduces a restatement of something obvious (which is the AI default).
-- One "notably" in a 2,000-word piece is fine. Three in 500 words is AI-style emphasis stacking. Flag by density.
-- Related — **persuasive-authority tropes**: "the real question is," "at its core," "fundamentally," "make no mistake," "the truth is." Same move as the calibration phrases above, but they assert depth or stakes instead of feeling: they announce that what follows is important rather than showing it. Cut the trope and lead with the substance. Adapted from `blader/humanizer` P27.
+### Reasoning-Ketten-Artefakte
+- „Lass mich Schritt für Schritt überlegen", „Lass uns das aufschlüsseln", „Gehen wir das systematisch an", „Schritt 1:", „Hier ist mein Gedankengang", „Überlegen wir zunächst", „Arbeiten wir das logisch durch" — das sind Artefakte des Chain-of-Thought-Reasonings, die in veröffentlichte Prosa durchsickern. Der Leser braucht das Gerüst nicht zu sehen. Nenn die Schlussfolgerung, dann den Beleg.
+- Achte auch auf nummerierte Denkschritte, die wie ein innerer Monolog lesen statt wie ein Argument für ein Publikum.
 
-### Excessive structure
-- Too many headers in short text: more than 3 headings in under 300 words is almost always AI trying to look organized. Merge sections or use prose transitions instead.
-- Too many list items: 8+ bullet points in under 200 words means the content should be a paragraph, not a list.
-- Formulaic section headers: "Overview," "Key Points," "Summary," "Conclusion," "Introduction" — these are default AI scaffolding. Use headers that tell the reader something specific about what follows.
+### Schmeichlerischer Ton
+- „Grossartige Frage!", „Ausgezeichneter Punkt!", „Du hast völlig recht!", „Das ist eine wirklich aufschlussreiche Beobachtung" — das sind Gesprächs-Belohnungen aus Chat-Oberflächen, kein geschriebener Text. Ganz entfernen.
+- Unterscheidet sich von Chatbot-Artefakten: Schmeichelei bestätigt speziell den Leser/Fragenden, statt nur Hilfsbereitschaft aufzuführen.
 
-### Rhythm and uniformity
+### Bestätigungs-Schleifen
+- „Du fragst nach", „Die Frage, ob", „Um deine Frage zu beantworten", „Das ist eine grossartige Frage. Die…" — KI wiederholt den Prompt, bevor sie antwortet. In einem Text ist das reines Füllsel. Der Leser weiss, was er gefragt hat. Antworte einfach.
+- Verwandtes Muster: einen Abschnitt damit eröffnen, zusammenzufassen, was der vorige Abschnitt sagte. Ist die Struktur klar, braucht der Leser keine Wiederholung.
 
-These aren't individual word or phrase problems — they're patterns in how the text flows as a whole. AI text is metronomic; human text has varied rhythm.
+### Sicherheits-Kalibrierungs-Phrasen
+- „Es ist wichtig zu beachten, dass", „Interessanterweise", „Überraschenderweise", „Wichtig ist", „Bedeutenderweise", „Bemerkenswerterweise", „Sicherlich", „Zweifellos", „Ohne Zweifel" — KI nutzt das, um zu signalisieren, wie der Leser sich zu einem Fakt fühlen soll, statt den Fakt für sich sprechen zu lassen.
+- „Hier wird es interessant", „Hier kommt der interessante Teil", „Das sind die Teile, die ich interessant fand" — Leser-Lenk-Cue, der Bedeutung vorab interpretiert. Funktioniert, wenn echt überraschende Daten folgen; scheitert, wenn er eine Wiederholung von etwas Offensichtlichem einleitet (was der KI-Standard ist).
+- Ein „bemerkenswert" in einem 2'000-Wörter-Text ist in Ordnung. Drei in 500 Wörtern sind KI-Betonungsstapelei. Nach Dichte flaggen.
+- Verwandt — **Autoritäts-Tropen mit Überzeugungsanspruch**: „die eigentliche Frage ist", „im Kern", „grundsätzlich", „machen wir uns nichts vor", „die Wahrheit ist". Derselbe Zug wie die Kalibrierungs-Phrasen oben, aber sie behaupten Tiefe oder Tragweite statt Gefühl: sie kündigen an, dass das Folgende wichtig ist, statt es zu zeigen. Streiche die Trope und führe mit der Substanz. Angelehnt an `blader/humanizer` P27.
 
-**Structure is the #1 detection signal.** AI detection tools (including Pangram, which trains a classifier on 28M human documents) weight structural regularity higher than vocabulary. Consistent sentence construction, uniform pacing, and symmetrical phrasing patterns are harder to mask than swapping out a few flagged words. If you fix every word on the Tier 1 list but leave the rhythm untouched, the text still reads as AI-generated.
+### Selbst-Etikettierung von Bedeutung
+- Nachdem mehrere Punkte aufgelistet oder beschrieben wurden, zeigt die schreibende Person auf einen zurück und etikettiert ihn als konträr / clever / überraschend / kontraintuitiv / zentral: „Dieser letzte Zug ist der konträre", „Das ist der interessante Teil", „Dieser dritte Punkt ist die eigentliche Geschichte", „Hier wird es clever", „Der letzte Teil ist der kontraintuitive".
+- Das Etikett erledigt die Arbeit, die der Inhalt erledigen sollte. Ist ein Zug echt konträr, erkennt der Leser das aus der Beschreibung; ist er ohne Etikett nicht erkennbar, ist das Etikett unverdient. Das Muster liest sich, als prüfe die schreibende Person die eigene Liste, um zu markieren, welcher Punkt zählen soll, statt die Liste so zu schreiben, dass der richtige Punkt das Gewicht von allein trägt.
+- Unterscheidet sich von der Sicherheits-Kalibrierung („Bemerkenswert", „Interessanterweise"), die den Cue vorab setzt, und von der emotionalen Flachheit („Was mich am meisten überrascht hat", „Der interessanteste Teil"), die eine einzelne Behauptung vorbereitet. Dieses Muster zeigt im Nachhinein zurück, meist als „[dieser / der X-te / der letzte] [Nomen] ist der [Adjektiv]".
+- Bedeutungs-Adjektive, die das Muster signalisieren: konträr, clever, überraschend, kontraintuitiv, interessant, zentral, wichtig, ungewöhnlich, schlau, brillant, echt, eigentlich.
+- Fix: Streiche den Etikettier-Satz und lass die folgende Erklärung die Arbeit direkt tun. Oder strukturiere so um, dass der hervorzuhebende Punkt zuerst steht oder mit Konkretem ausgebaut wird, sodass das Etikett überflüssig ist.
+- Beispiel. Vorher: „→ Zwei getrennte Indizes für gestaffelten Speicher. Dieser letzte Zug ist der konträre. Verwandte Daten zusammenzulegen hilft normalerweise der Cache-Lokalität." Nachher: „→ Zwei getrennte Indizes für gestaffelten Speicher. Verwandte Daten zusammenzulegen hilft normalerweise der Cache-Lokalität, aber die Indizes zu trennen macht den heissen Pfad günstig." Der Kontrast trägt sich selbst; das Etikett ist weg.
 
-- **Sentence length uniformity**: If most sentences are 15–25 words, the text sounds robotic. Mix short punchy sentences (3–8 words) with longer flowing ones (20+). Fragments work. Questions break the monotony.
-- **Paragraph length uniformity**: If every paragraph is 3–5 sentences and roughly the same size, vary deliberately. Some paragraphs should be one sentence. Some should be longer.
-- **Vocabulary repetition vs. synonym cycling**: AI either repeats the same word mechanically or cycles through synonyms conspicuously. Human writers repeat when the word is right and vary when it's natural — there's no formula.
-- **Read-aloud test**: If the text sounds like it could be read by a text-to-speech engine without sounding weird, it's probably too uniform. Human writing has rhythm that resists robotic delivery.
-- **Missing first-person perspective**: Where appropriate, the writer should have opinions, preferences, and reactions. AI is relentlessly neutral. If the piece is supposed to have a voice, the absence of "I think," "in my experience," or a stated preference is itself an AI tell.
-- **Over-polishing**: Aggressively editing out every irregularity can push human writing *toward* AI statistical profiles. Natural disfluency, idiosyncratic word choices, and uneven pacing are what keep text out of the "AI-generated" classification. Don't sand away all personality in pursuit of clean prose. This skill should make writing sound more human, not less — if you apply every rule at maximum strictness, you risk creating the very uniformity you're trying to avoid.
+### Übermässige Struktur
+- Zu viele Überschriften in kurzem Text: mehr als 3 Überschriften unter 300 Wörtern ist fast immer KI, die organisiert aussehen will. Abschnitte zusammenführen oder Prosa-Übergänge nutzen.
+- Zu viele Listenpunkte: 8+ Aufzählungspunkte unter 200 Wörtern heisst, der Inhalt sollte ein Absatz sein, keine Liste.
+- Schablonenhafte Abschnitts-Header: „Überblick", „Kernpunkte", „Zusammenfassung", „Fazit", „Einleitung" — das ist KI-Standardgerüst. Nutze Überschriften, die dem Leser etwas Konkretes über das Folgende sagen.
 
-### Vocabulary diversity (stylometric)
+### Rhythmus und Gleichförmigkeit
 
-In longer pieces (200+ words), look at how much vocabulary the text actually uses. The type-token ratio (TTR) — distinct word types divided by total tokens — is a classical stylometric signal that's easy to read by eye. Human prose at this length usually lands somewhere around 0.50–0.65 in English. AI text trends flatter, sometimes drifting under 0.40 when the model gets locked on a small vocabulary loop.
+Das sind keine einzelnen Wort- oder Phrasenprobleme — es sind Muster darin, wie der Text als Ganzes fliesst. KI-Text ist metronomisch; menschlicher Text hat variierten Rhythmus.
 
-A very low TTR is not by itself proof of AI authorship — narrow topics, technical reference material, and second-language writing all legitimately compress vocabulary. But on general prose where you'd expect range (essays, articles, social content over ~200 words), a TTR below 0.40 is worth a second look. The fix is rarely to thesaurus the text; it's to broaden the *what* — name specific things, cite specific cases, replace a re-used abstract noun with the concrete instance behind it.
+**Struktur ist das Erkennungssignal Nummer eins.** KI-Erkennungstools (darunter Pangram, das einen Klassifikator auf 28 Mio. menschlichen Dokumenten trainiert) gewichten strukturelle Regelmässigkeit höher als Wortschatz. Gleichförmiger Satzbau, gleichmässiges Tempo und symmetrische Formulierungsmuster sind schwerer zu kaschieren als das Austauschen einiger geflaggter Wörter. Korrigierst du jedes Wort der Tier-1-Liste, lässt aber den Rhythmus unangetastet, liest sich der Text weiter wie KI-generiert.
 
-This is the first of four stylometric signals on the roadmap. The others (sentence-length burstiness as a continuous measure, function-word z-scores against a human-prose reference, POS-bigram log-odds) require either a POS tagger or a reference distribution and aren't implemented as detector categories yet.
+- **Gleichförmige Satzlänge**: Sind die meisten Sätze 15–25 Wörter lang, klingt der Text roboterhaft. Mische kurze, knappe Sätze (3–8 Wörter) mit längeren, fliessenden (20+). Fragmente wirken. Fragen brechen die Monotonie.
+- **Gleichförmige Absatzlänge**: Ist jeder Absatz 3–5 Sätze lang und ungefähr gleich gross, variiere bewusst. Manche Absätze sollten ein Satz sein. Manche sollten länger sein.
+- **Wortwiederholung vs. Synonym-Wechsel**: KI wiederholt entweder dasselbe Wort mechanisch oder wechselt auffällig durch Synonyme. Menschliche Autoren wiederholen, wenn das Wort stimmt, und variieren, wenn es natürlich ist — es gibt keine Formel.
+- **Vorlese-Test**: Klingt der Text, als könnte ihn eine Text-to-Speech-Maschine vorlesen, ohne seltsam zu wirken, ist er wahrscheinlich zu gleichförmig. Menschliches Schreiben hat einen Rhythmus, der sich roboterhafter Wiedergabe widersetzt.
+- **Fehlende Ich-Perspektive**: Wo es passt, sollte die schreibende Person Meinungen, Vorlieben und Reaktionen haben. KI ist unerbittlich neutral. Soll der Text eine Stimme haben, ist das Fehlen von „Ich denke", „aus meiner Erfahrung" oder einer geäusserten Vorliebe selbst ein KI-Tell.
+- **Über-Politur**: Jede Unregelmässigkeit aggressiv wegzuredigieren kann menschliches Schreiben *zum* KI-Statistikprofil hin drücken. Natürliche Stockungen, eigenwillige Wortwahl und ungleichmässiges Tempo sind das, was Text aus der „KI-generiert"-Klassifikation heraushält. Schleif nicht jede Persönlichkeit weg im Streben nach sauberer Prosa. Dieses Skill soll Texte menschlicher klingen lassen, nicht weniger menschlich — wendest du jede Regel maximal streng an, riskierst du genau die Gleichförmigkeit, die du vermeiden willst.
 
-### Paragraph-reshuffle immunity (structure test)
-- A writer-side diagnostic, not a regex: can you swap two body paragraphs without breaking the piece? If the order doesn't matter, you've written a list of points, not an argument that builds. AI prose often fails this — each paragraph is a self-contained module with no load-bearing connection to its neighbors.
-- The fix is structural, not lexical: establish a through-line where each paragraph depends on the one before it. If the paragraphs are genuinely independent, decide whether the piece should be an explicit list, or whether it's missing a thesis. Adapted from `Aboudjem/humanizer-skill` P38.
+### Wortschatz-Vielfalt (stylometrisch)
 
-### Treadmill effect / low information density (content test)
-- Another writer-side test: read each paragraph and ask "what's actually new here?" AI prose frequently restates the premise in fresh words instead of advancing it — lots of motion, no distance covered. The tell is that you could cut 40-60% and lose no information.
-- The fix: for each paragraph, name the one fact, claim, or turn it contributes. If there isn't one, cut it. If there is, lead with it and drop the throat-clearing. Adapted from `Aboudjem/humanizer-skill` P43.
+In längeren Texten (ab 200 Wörtern) schau, wie viel Wortschatz der Text tatsächlich nutzt. Das Type-Token-Verhältnis (TTR) — verschiedene Worttypen geteilt durch die Gesamtzahl der Tokens — ist ein klassisches stylometrisches Signal, das sich mit blossem Auge lesen lässt. Menschliche Prosa landet bei dieser Länge meist um 0,50–0,65. KI-Text tendiert flacher und sinkt manchmal unter 0,40, wenn das Modell sich auf eine kleine Wortschleife festfährt.
 
-### When to rewrite from scratch vs. patch
+Ein sehr niedriges TTR ist für sich kein Beweis für KI-Urheberschaft — enge Themen, technisches Referenzmaterial und Zweitsprach-Texte verdichten den Wortschatz alle legitim. **Vorbehalt für Deutsch:** Die TTR-Schwelle ist auf englischen Korpora kalibriert; deutsche Flexion senkt das TTR, Komposita erhöhen die Type-Zahl, beides verschiebt die Verteilung. Behandle die Schwelle konservativ als Heuristik, nicht als feste Grenze. Auf allgemeiner Prosa, wo man Bandbreite erwartet (Essays, Artikel, Social-Content über ~200 Wörter), ist ein TTR unter 0,40 einen zweiten Blick wert. Der Fix ist selten, den Text zu thesaurieren; er ist, das *Was* zu verbreitern — konkrete Dinge nennen, konkrete Fälle zitieren, ein wiederverwendetes abstraktes Nomen durch die konkrete Instanz dahinter ersetzen.
 
-If the text has 5+ flagged vocabulary hits across multiple categories, 3+ distinct pattern categories triggered, and uniform sentence/paragraph length, patching individual phrases won't fix it — the structure itself is AI-generated. Advise a full rewrite: state the core point in one sentence, then rebuild from there.
+### Absatz-Umstell-Immunität (Struktur-Test)
+- Eine Diagnose für die schreibende Person, kein Regex: Kannst du zwei Fliesstext-Absätze tauschen, ohne dass der Text bricht? Spielt die Reihenfolge keine Rolle, hast du eine Liste von Punkten geschrieben, kein Argument, das sich aufbaut. KI-Prosa scheitert hieran oft — jeder Absatz ist ein in sich geschlossenes Modul ohne tragende Verbindung zum Nachbarn.
+- Der Fix ist strukturell, nicht lexikalisch: einen roten Faden etablieren, bei dem jeder Absatz vom vorigen abhängt. Sind die Absätze echt unabhängig, entscheide, ob der Text eine explizite Liste sein sollte oder ob ihm eine These fehlt. Angelehnt an `Aboudjem/humanizer-skill` P38.
+
+### Tretmühlen-Effekt / geringe Informationsdichte (Inhalts-Test)
+- Ein weiterer Test für die schreibende Person: lies jeden Absatz und frag „was ist hier eigentlich neu?". KI-Prosa wiederholt häufig die Prämisse in frischen Worten, statt sie voranzutreiben — viel Bewegung, keine zurückgelegte Strecke. Das Tell ist, dass du 40–60 % streichen könntest, ohne Information zu verlieren.
+- Der Fix: benenne für jeden Absatz den einen Fakt, die eine Behauptung oder Wendung, die er beiträgt. Gibt es keine, streich ihn. Gibt es eine, führe mit ihr und lass das Geräusper weg. Angelehnt an `Aboudjem/humanizer-skill` P43.
+
+### Wann komplett neu schreiben statt flicken
+
+Hat der Text 5+ geflaggte Vokabel-Treffer über mehrere Kategorien, 3+ verschiedene ausgelöste Musterkategorien und gleichförmige Satz-/Absatzlänge, behebt das Flicken einzelner Wendungen nichts — die Struktur selbst ist KI-generiert. Rate zu einem vollständigen Neuschreiben: den Kernpunkt in einem Satz formulieren, dann von dort neu aufbauen.
 
 ---
 
-## Severity tiers
+## Severity-Tiers
 
-Not all AI-isms are equal. When doing a quick pass or triaging a large document, prioritize by tier:
+Nicht alle KI-Floskeln sind gleich. Bei einem schnellen Durchgang oder beim Triagieren eines grossen Dokuments priorisiere nach Tier:
 
-### P0 — Credibility killers (fix immediately)
-- Cutoff disclaimers ("As of my last update")
-- Chatbot artifacts ("I hope this helps!", "Great question!")
-- Vague attributions without sources ("Experts believe")
-- Significance inflation on routine events
-- Hashtag stuffing on `linkedin` and `investor-email` posts (severity varies by profile — same rule, lower priority on `blog`/`technical-blog` where a launch post may legitimately stack tags; see the context-profile table below)
+### P0 — Glaubwürdigkeits-Killer (sofort beheben)
+- Cutoff-Disclaimer („Stand meines letzten Updates")
+- Chatbot-Artefakte („Ich hoffe, das hilft!", „Grossartige Frage!")
+- Vage Quellenangaben ohne Quelle („Experten glauben")
+- Bedeutungs-Aufblähung bei Routineereignissen
+- Hashtag-Stopfen auf `linkedin`- und `investor-email`-Posts (Schwere variiert nach Profil — gleiche Regel, niedrigere Priorität auf `blog`/`technical-blog`, wo ein Launch-Post legitim Tags stapeln kann; siehe Context-Profil-Tabelle unten)
 
-### P1 — Obvious AI smell (fix before publishing)
-- Word-list violations (delve, leverage, harness, robust, etc.)
-- Template phrases and slot-fill constructions
-- "Let's" transition openers
-- Synonym cycling within a paragraph
-- Formulaic openings ("In the rapidly evolving world of...")
-- Bold overuse
-- Em dash frequency (above 1 per 1,000 words)
-- Generic future-narrative closers ("may become one of the most important narratives…")
-- Hedge-stacked predictions ("could potentially," "may eventually")
-- Real/actual adjective inflation ("real on-chain tokenomics")
-- Bullet lists of bare noun phrases (5+ short adj+noun items, no verbs)
-- Tier 3 phrase clustering (≥3 distinct boilerplate phrases in one piece)
+### P1 — Offensichtlicher KI-Geruch (vor der Veröffentlichung beheben)
+- Wortlisten-Verstösse (eintauchen, nutzen, fördern, robust usw.)
+- Template-Phrasen und Schablonen-Konstruktionen
+- „Lass uns"-Übergangs-Einstiege
+- Synonym-Wechsel innerhalb eines Absatzes
+- Schablonenhafte Einstiege („In der sich rasant verändernden Welt von…")
+- Fett-Überladung
+- Geviertstrich-Häufigkeit (über 1 pro 1'000 Wörter)
+- Generische Zukunfts-Schlüsse („könnte zu einem der wichtigsten Narrative werden…")
+- Gestapelte Absicherungen in Prognosen („könnte möglicherweise", „dürfte letztlich")
+- Echt/tatsächlich-Adjektiv-Aufblähung („echte On-Chain-Tokenomics")
+- Aufzählungslisten aus blossen Nominalphrasen (5+ kurze Adj.+Nomen-Punkte, keine Verben)
+- Nominalstil-Häufung (mehrere Funktionsverbgefüge in Folge)
+- Tier-3-Phrasen-Cluster (≥3 verschiedene Boilerplate-Phrasen in einem Text)
 
-### P2 — Stylistic polish (fix when time allows)
-- Generic conclusions ("The future looks bright")
-- Compulsive rule of three
-- Uniform paragraph length
-- Copula avoidance (serves as, features, boasts)
-- Transition phrases (Moreover, Furthermore, Additionally)
-- Hashtag stuffing (`blog`/`technical-blog` profiles)
-- Tier 3 phrase repetition (single phrase ≥2× — fine in isolation, suspect in stacks)
+### P2 — Stilistischer Schliff (beheben, wenn Zeit ist)
+- Generische Schlüsse („Die Zukunft sieht rosig aus")
+- Zwanghafte Dreierregel
+- Gleichförmige Absatzlänge
+- Kopula-Vermeidung (dient als, verfügt über, präsentiert)
+- Übergangsphrasen (Darüber hinaus, Des Weiteren, Zudem)
+- Passivlastigkeit (Häufung von „es wird/es sollte")
+- Hashtag-Stopfen (`blog`/`technical-blog`-Profile)
+- Tier-3-Phrasen-Wiederholung (einzelne Phrase ≥2× — einzeln in Ordnung, im Stapel verdächtig)
 
-Use P0+P1 for quick passes. Full audit covers all three tiers.
-
----
-
-## Self-reference escape hatch
-
-When writing *about* AI writing patterns (blog posts, tutorials, skill documentation like this file), quoted examples are exempt from flagging. Text inside quotation marks, code blocks, or explicitly marked as illustrative ("for example, AI might write...") should not be rewritten. Only flag patterns that appear in the author's own prose, not in cited examples of bad writing.
+Nutze P0+P1 für schnelle Durchgänge. Ein vollständiges Audit deckt alle drei Tiers ab.
 
 ---
 
-## Context profiles
+## Self-Reference-Escape-Hatch
 
-Pass an optional context hint to adjust rule strictness. If no context is specified, auto-detect from content cues (short + hashtags = social, code blocks = technical, salutation = email, default = blog).
+Wenn du *über* KI-Schreibmuster schreibst (Blogposts, Tutorials, Skill-Dokumentation wie diese Datei), sind zitierte Beispiele vom Flaggen ausgenommen. Text in Anführungszeichen, in Code-Blöcken oder ausdrücklich als illustrativ markiert („KI könnte zum Beispiel schreiben…") soll nicht umgeschrieben werden. Flagge nur Muster, die in der eigenen Prosa der Autorin auftreten, nicht in zitierten Beispielen schlechten Schreibens.
 
-### Profile definitions
+---
 
-**`linkedin`** � Short-form social. Punchy fragments, visual formatting matter.
-**`blog`** � Default. Standard long-form prose. All rules apply at full strength.
-**`technical-blog`** � Long-form with code, architecture, APIs. Technical terms get a pass.
-**`investor-email`** � High-trust audience. Tighten everything; promotional language is the biggest risk.
-**`docs`** � Documentation, READMEs, guides. Clarity over voice.
-**`casual`** � Slack messages, internal notes, quick replies. Only catch the worst offenders.
+## Context-Profile
 
-### Tolerance matrix
+Übergib einen optionalen Kontext-Hinweis, um die Regelstrenge anzupassen. Ist kein Kontext angegeben, leite ihn aus Inhalts-Signalen ab (kurz + Hashtags = Social, Code-Blöcke = technisch, Anrede = E-Mail, Standard = Blog).
 
-Rules not listed in the table apply at full strength across all profiles.
+### Profil-Definitionen
 
-| Rule | linkedin | blog | technical-blog | investor-email | docs | casual |
+**`linkedin`** — Kurzform-Social. Knackige Fragmente, visuelle Formatierung zählen.
+**`blog`** — Standard. Klassische Langform-Prosa. Alle Regeln in voller Strenge.
+**`technical-blog`** — Langform mit Code, Architektur, APIs. Fachbegriffe bekommen einen Freibrief.
+**`investor-email`** — Publikum mit hohem Vertrauen. Alles straffen; Werbesprache ist das grösste Risiko.
+**`docs`** — Dokumentation, READMEs, Anleitungen. Klarheit vor Stimme.
+**`casual`** — Slack-Nachrichten, interne Notizen, schnelle Antworten. Nur die schlimmsten Fälle fangen.
+
+### Toleranzmatrix
+
+Regeln, die nicht in der Tabelle stehen, gelten über alle Profile in voller Strenge.
+
+| Regel | linkedin | blog | technical-blog | investor-email | docs | casual |
 |------|----------|------|----------------|----------------|------|--------|
-| Em dashes | relaxed (2/post OK) | strict | strict | strict | relaxed | skip |
-| Bold overuse | relaxed (bold hooks OK) | strict | strict | strict | relaxed | skip |
-| Emoji in headers | relaxed (1-2 end-of-line OK) | strict | strict | strict | skip | skip |
-| Excessive bullets | skip (lists work on LinkedIn) | strict | relaxed (technical lists OK) | strict | skip (lists are docs) | skip |
-| Hedging | strict | strict | relaxed ("may" is accurate in technical) | strict | relaxed | skip |
-| Word table (full list) | strict | strict | **partial** (see below) | strict | relaxed | P0 only |
-| Promotional language | relaxed (some sell is expected) | strict | strict | **extra strict** | strict | skip |
-| Significance inflation | strict | strict | strict | **extra strict** | relaxed | skip |
-| Copula avoidance | skip | strict | relaxed | strict | skip | skip |
-| Uniform paragraph length | skip (short-form) | strict | strict | strict | relaxed | skip |
-| Numbered list inflation | relaxed | strict | relaxed | strict | skip | skip |
-| Rhetorical questions | relaxed (1 as hook OK) | strict | strict | strict | strict | skip |
-| Transition phrases | skip (short-form) | strict | strict | strict | relaxed | skip |
-| Generic conclusions | skip | strict | strict | **extra strict** | skip | skip |
-| Hashtag stuffing | strict | strict | strict | **extra strict** | skip (no hashtags in docs) | skip |
-| Bullet-NP lists | strict | strict | relaxed (technical option lists OK) | strict | relaxed (parameter lists OK) | skip |
-| Tier 3 phrase clustering | strict | strict | strict | **extra strict** | relaxed | skip |
-| Future-narrative closers | strict | strict | strict | **extra strict** | skip | skip |
-| Hedge-stacked predictions | strict | strict | relaxed ("could" is hedged accuracy) | **extra strict** | relaxed | skip |
-| Real/actual inflation | strict | strict | strict | **extra strict** | relaxed | skip |
+| Geviertstriche | nachsichtig (2/Post ok) | streng | streng | streng | nachsichtig | überspringen |
+| Fett-Überladung | nachsichtig (Fett-Hooks ok) | streng | streng | streng | nachsichtig | überspringen |
+| Emoji in Überschriften | nachsichtig (1–2 am Zeilenende ok) | streng | streng | streng | überspringen | überspringen |
+| Übermässige Aufzählungen | überspringen (Listen wirken auf LinkedIn) | streng | nachsichtig (technische Listen ok) | streng | überspringen (Listen sind Doku) | überspringen |
+| Absicherungen | streng | streng | nachsichtig („mag/dürfte" ist im Technischen akkurat) | streng | nachsichtig | überspringen |
+| Wortliste (vollständig) | streng | streng | **teilweise** (siehe unten) | streng | nachsichtig | nur P0 |
+| Werbesprache | nachsichtig (etwas Verkauf erwartet) | streng | streng | **extra streng** | streng | überspringen |
+| Bedeutungs-Aufblähung | streng | streng | streng | **extra streng** | nachsichtig | überspringen |
+| Kopula-Vermeidung | überspringen | streng | nachsichtig | streng | überspringen | überspringen |
+| Gleichförmige Absatzlänge | überspringen (Kurzform) | streng | streng | streng | nachsichtig | überspringen |
+| Nummerierte-Listen-Aufblähung | nachsichtig | streng | nachsichtig | streng | überspringen | überspringen |
+| Rhetorische Fragen | nachsichtig (1 als Hook ok) | streng | streng | streng | streng | überspringen |
+| Übergangsphrasen | überspringen (Kurzform) | streng | streng | streng | nachsichtig | überspringen |
+| Generische Schlüsse | überspringen | streng | streng | **extra streng** | überspringen | überspringen |
+| Hashtag-Stopfen | streng | streng | streng | **extra streng** | überspringen (keine Hashtags in Doku) | überspringen |
+| Bullet-NP-Listen | streng | streng | nachsichtig (technische Options-Listen ok) | streng | nachsichtig (Parameter-Listen ok) | überspringen |
+| Tier-3-Phrasen-Cluster | streng | streng | streng | **extra streng** | nachsichtig | überspringen |
+| Zukunfts-Schlüsse | streng | streng | streng | **extra streng** | überspringen | überspringen |
+| Gestapelte Absicherungen | streng | streng | nachsichtig („könnte" ist abgesicherte Genauigkeit) | **extra streng** | nachsichtig | überspringen |
+| Echt/tatsächlich-Aufblähung | streng | streng | streng | **extra streng** | nachsichtig | überspringen |
+| Nominalstil | streng | streng | nachsichtig (Fachsprache verdichtet) | streng | nachsichtig | überspringen |
+| Passivlastigkeit | streng | streng | nachsichtig (Passiv ist im Technischen oft korrekt) | streng | nachsichtig | überspringen |
 
-**Technical-blog word table exceptions:** These terms have legitimate technical meaning and should not be flagged in technical context: `robust`, `comprehensive`, `seamless`, `ecosystem`, `leverage` (when discussing actual platform leverage/APIs), `facilitate`, `underpin`, `streamline`. Still flag: `delve`, `tapestry`, `beacon`, `embark`, `testament to`, `game-changer`, `harness`.
+**Technical-Blog-Wortlisten-Ausnahmen:** Diese Begriffe haben legitime technische Bedeutung und sollten im technischen Kontext nicht geflaggt werden: `robust`, `umfassend`, `nahtlos`, `ökosystem`, `optimieren` (bei echter Optimierungsarbeit/-problemen), `skalierbar`. Weiterhin flaggen: `eintauchen`, `beleuchten`, `bahnbrechend`, `meilenstein`, `ein zeugnis für`, `auf ein neues level heben`.
 
-**"Extra strict"** means: flag even borderline instances. In investor emails, a single "thriving ecosystem" can undermine the whole message.
+**„Extra streng"** heisst: auch Grenzfälle flaggen. In Investor-E-Mails kann ein einzelnes „florierendes Ökosystem" die ganze Botschaft untergraben.
 
-**"Skip"** means: don't audit this category for this profile. The rule doesn't apply or isn't worth the edit.
+**„Überspringen"** heisst: diese Kategorie für dieses Profil nicht prüfen. Die Regel greift nicht oder ist die Änderung nicht wert.
 
-### Auto-detection cues
+### Auto-Detection-Cues
 
-When no context is specified, infer from these signals:
+Ist kein Kontext angegeben, leite ihn aus diesen Signalen ab:
 
-| Signal | Inferred context |
+| Signal | Abgeleiteter Kontext |
 |--------|-----------------|
-| Under 300 words + hashtags or mentions | `linkedin` |
-| Code blocks, API references, or technical architecture | `technical-blog` |
-| Salutation ("Hi [name]", "Dear") + investor/fundraising language | `investor-email` |
-| Step-by-step instructions, parameter docs, README structure | `docs` |
-| No strong signals | `blog` (safest default � all rules apply) |
+| Unter 300 Wörter + Hashtags oder Erwähnungen | `linkedin` |
+| Code-Blöcke, API-Referenzen oder technische Architektur | `technical-blog` |
+| Anrede („Hallo [Name]", „Sehr geehrte") + Investoren-/Finanzierungssprache | `investor-email` |
+| Schritt-für-Schritt-Anleitungen, Parameter-Dokus, README-Struktur | `docs` |
+| Keine starken Signale | `blog` (sicherster Standard — alle Regeln gelten) |
 
-If auto-detection feels wrong, say which profile you're using and why. The user can override.
-
----
-
-
-## Voice profiles
-
-Context profiles (above) set *how strict* to be for an audience. Voice profiles set *how the prose should sound* — the persona. They're independent axes: you can write blunt for a blog or warm for docs. Voice is **optional** — if the writer doesn't name one, infer it from the input's existing register and don't impose a persona on text that already has one.
-
-Each profile is a set of concrete targets, not a vibe:
-
-**`casual`** — Contractions throughout; their absence reads stiff. Short sentences (aim for ≤14 words on average); fragments allowed. At least one first-person or concrete-anecdote touch. Near-zero jargon. Keep warm hedges ("honestly," "I think") but cut corporate ones ("it's worth noting"). *Blog posts, social, community.*
-
-**`professional`** — Active voice for most sentences. Vary sentence length; avoid three in a row within a few words of each other. One concrete claim per paragraph (a number, a name, a date), never "experts say." Make the ask explicit. Low tolerance for hedging. *LinkedIn, investor email, sponsor pitches.*
-
-**`technical`** — Prefer plain copulatives ("X is Y") over inflated substitutes ("serves as," "stands as a testament to"). One idea per sentence; imperative mood for instructions. Jargon is fine, but define it on first use. Tables and lists only where the content is genuinely list-shaped, not for decoration. *Docs, technical blog.*
-
-**`warm`** — Address the reader directly ("you") and acknowledge them at least once. Cut intensifiers ("very," "truly," "incredibly") in favor of stronger verbs. No performative-empathy openers ("I completely understand how you feel"). Medium sentences (15–20 words) for an unhurried cadence. *Mentorship, onboarding, thank-yous.*
-
-**`blunt`** — Lead with the claim; cut "It's important to note that" windups. Em-dashes are rare here; use periods for emphasis. No padding to hit a rule of three. Near-zero hedging; flag "may / could / potentially" stacks. Short declaratives, with the occasional long sentence for contrast. *Decision memos, thought leadership, hard feedback.*
-
-**Calibrate to a sample (optional).** If the writer gives you a sample of their own writing ("match my voice — here's a post"), analyze its sentence-length pattern, contraction rate, paragraph openings, and recurring word choices, then match those instead of a named profile. Don't "upgrade" their vocabulary: if they write "stuff" and "things," keep that register.
-
-**How voice composes with context.** Voice sets the target; context sets how hard to enforce it. A voice *target* always applies, even where a context profile would skip that category — `technical` voice still prefers plain copulatives in a `casual` context that otherwise ignores copula avoidance. Where both axes govern the same rule and agree, they reinforce: `blunt` voice wants near-zero em-dashes and a `blog` context is already strict on them, so it stays a hard edit. Where they disagree, resolve toward the **stricter** of the two — a `warm` voice on `docs` still doesn't get decorative tables. Sensible default pairings: casual↔casual, professional↔linkedin/investor-email, technical↔docs/technical-blog.
+Fühlt sich die Auto-Detection falsch an, sag, welches Profil du nutzt und warum. Die Person kann das überschreiben.
 
 ---
 
-## Output format
 
-### Rewrite mode (default)
+## Voice-Profile
 
-Return your response in four sections:
+Context-Profile (oben) legen fest, *wie streng* man für ein Publikum ist. Voice-Profile legen fest, *wie die Prosa klingen soll* — die Persona. Das sind unabhängige Achsen: Du kannst direkt für einen Blog oder warm für Doku schreiben. Voice ist **optional** — nennt die Person keine, leite sie aus dem bestehenden Register des Inputs ab und stülp keine Persona über einen Text, der schon eine hat.
 
-**1. Issues found**
-A bulleted list of every AI-ism identified, with the offending text quoted.
+Jedes Profil ist eine Reihe konkreter Zielwerte, keine Stimmung:
 
-**2. Rewritten version**
-The full rewritten content. Preserve the original structure, intent, and all specific technical details. Only change what the guidelines require.
+**`casual`** — Durchgehend Verkürzungen und lockerer Ton; ihr Fehlen wirkt steif. Kurze Sätze (ziele auf ≤14 Wörter im Schnitt); Fragmente erlaubt. Mindestens ein Ich-Bezug oder eine konkrete Anekdote. Fast kein Fachjargon. Behalte warme Absicherungen („ehrlich", „ich denke"), aber streiche die bürokratischen („es ist erwähnenswert"). *Blogposts, Social, Community.*
 
-**3. What changed**
-A brief summary of the major edits made. Not every word, just the meaningful changes.
+**`professional`** — Aktiv in den meisten Sätzen. Variiere die Satzlänge; vermeide drei kurze in Folge dicht beieinander. Eine konkrete Aussage pro Absatz (eine Zahl, ein Name, ein Datum), nie „Experten sagen". Mach die Bitte explizit. Geringe Toleranz für Absicherungen. *LinkedIn, Investor-E-Mail, Sponsoring-Pitches.*
 
-**4. Second-pass audit**
-Re-read the rewritten version from section 2. Identify any remaining AI tells that survived the first pass — recycled transitions, lingering inflation, copula avoidance, filler phrases, or anything else from the categories above. Fix them, return the corrected text inline, and note what changed in this pass. If the rewrite is clean, say so.
+**`technical`** — Bevorzuge schlichte Kopulae („X ist Y") gegenüber aufgemotzten Ersatzformen („dient als", „steht als Zeugnis für"). Eine Idee pro Satz; Imperativ für Anweisungen. Fachjargon ist in Ordnung, aber definiere ihn bei der ersten Verwendung. Tabellen und Listen nur, wo der Inhalt echt listenförmig ist, nicht zur Dekoration. *Doku, technischer Blog.*
 
-### Detect mode
+**`warm`** — Sprich den Leser direkt an („Sie"/„du") und nimm ihn mindestens einmal wahr. Streiche Verstärker („sehr", „wirklich", „unglaublich") zugunsten stärkerer Verben. Keine aufgesetzten Empathie-Einstiege („Ich verstehe vollkommen, wie Sie sich fühlen"). Mittlere Sätze (15–20 Wörter) für eine ruhige Kadenz. *Mentoring, Onboarding, Dankesschreiben.*
 
-Return your response in two sections:
+**`blunt`** — Führe mit der Behauptung; streiche „Es ist wichtig zu beachten, dass"-Anläufe. Geviertstriche sind hier selten; nutze Punkte zur Betonung. Kein Polster, um eine Dreierregel zu erreichen. Fast keine Absicherung; flagge „mag / könnte / möglicherweise"-Stapel. Kurze Aussagesätze, mit dem gelegentlichen langen Satz zum Kontrast. *Entscheidungsnotizen, Thought Leadership, hartes Feedback.*
 
-**1. Issues found**
-A bulleted list of every AI-ism identified, with the offending text quoted. Group by severity (P0, P1, P2).
+**Auf eine Probe kalibrieren (optional).** Gibt dir die Person eine Probe ihres eigenen Schreibens („triff meine Stimme — hier ist ein Post"), analysiere ihr Satzlängenmuster, ihre Verkürzungsrate, ihre Absatz-Einstiege und wiederkehrenden Wortwahlen und triff dann diese statt eines benannten Profils. „Veredle" nicht ihren Wortschatz: Schreibt sie „Zeug" und „Sachen", behalt das Register.
 
-**2. Assessment**
-For each flag, note whether it's a clear problem or a judgment call. Some AI-associated patterns are effective writing techniques — uniform paragraph length is a problem, but a well-placed "however" isn't. Call out which flags the writer should definitely fix vs. which ones are worth a second look but might be fine in context. If the text is clean, say so.
-
-### Edit mode
-
-After editing the file in place, return a short report — not the full file:
-
-**1. Edits made**
-A bulleted list of the changes, each with the file location and the before → after. Only the spans you touched.
-
-**2. Verification**
-Confirm you re-read the file and the flagged patterns are resolved. Note anything you deliberately left alone because it was already human or intentional.
+**Wie Voice mit Kontext zusammenspielt.** Voice setzt das Ziel; Kontext setzt, wie hart durchgesetzt wird. Ein Voice-*Ziel* gilt immer, selbst wo ein Context-Profil diese Kategorie überspringen würde — `technical`-Voice bevorzugt schlichte Kopulae auch in einem `casual`-Kontext, der Kopula-Vermeidung sonst ignoriert. Wo beide Achsen dieselbe Regel steuern und übereinstimmen, verstärken sie sich: `blunt`-Voice will fast keine Geviertstriche und ein `blog`-Kontext ist darauf schon streng, also bleibt es eine harte Korrektur. Wo sie sich widersprechen, löse zur **strengeren** der beiden auf — eine `warm`-Voice auf `docs` bekommt trotzdem keine dekorativen Tabellen. Sinnvolle Standard-Paarungen: casual↔casual, professional↔linkedin/investor-email, technical↔docs/technical-blog.
 
 ---
 
-## Tone calibration
+## Output-Format
 
-The goal is writing that sounds like a person wrote it. Direct. Specific. The writing should demonstrate confidence, not assert it.
+### Rewrite-Modus (Standard)
 
-Five principles for human-sounding rewrites:
-1. **Vary sentence length** — mix short with long. Fragments are fine.
-2. **Be concrete** — replace vague claims with numbers, names, dates, or examples.
-3. **Have a voice** — where appropriate, use first person, state preferences, show reactions.
-4. **Cut the neutrality** — humans have opinions. If the piece is supposed to take a position, take it.
-5. **Earn your emphasis** — don't tell the reader something is interesting. Make it interesting.
+Gib deine Antwort in vier Abschnitten zurück:
 
-If the original writing is already strong, say so and make only the necessary cuts. Don't over-edit for the sake of it.
+**1. Gefundene Probleme**
+Eine Aufzählung jeder gefundenen KI-Floskel, mit Zitat der betreffenden Stelle.
 
-The replacement table provides defaults, not mandates. If a flagged word is clearly the right choice in context, preserve it.
+**2. Umgeschriebene Fassung**
+Der vollständig umgeschriebene Inhalt. Bewahre die ursprüngliche Struktur, Absicht und alle konkreten technischen Details. Ändere nur, was die Richtlinien verlangen.
+
+**3. Was sich geändert hat**
+Eine kurze Zusammenfassung der wesentlichen Änderungen. Nicht jedes Wort, nur die bedeutsamen Änderungen.
+
+**4. Zweiter Prüf-Durchlauf**
+Lies die umgeschriebene Fassung aus Abschnitt 2 erneut. Finde alle verbliebenen KI-Tells, die den ersten Durchlauf überlebt haben — recycelte Übergänge, anhaltende Aufblähung, Kopula-Vermeidung, Füllphrasen oder sonst etwas aus den Kategorien oben. Korrigiere sie, gib den korrigierten Text inline zurück und vermerke, was sich in diesem Durchlauf geändert hat. Ist das Umschreiben sauber, sag das.
+
+### Detect-Modus
+
+Gib deine Antwort in zwei Abschnitten zurück:
+
+**1. Gefundene Probleme**
+Eine Aufzählung jeder gefundenen KI-Floskel, mit Zitat der betreffenden Stelle. Nach Schwere gruppieren (P0, P1, P2).
+
+**2. Einschätzung**
+Vermerke für jeden Treffer, ob es ein klares Problem oder ein Ermessensfall ist. Manche KI-assoziierten Muster sind wirksame Schreibtechniken — gleichförmige Absatzlänge ist ein Problem, ein gut gesetztes „jedoch" nicht. Heb hervor, welche Treffer die Person definitiv beheben sollte und welche einen zweiten Blick wert, im Kontext aber vielleicht in Ordnung sind. Ist der Text sauber, sag das.
+
+### Edit-Modus
+
+Nachdem du die Datei direkt bearbeitet hast, gib einen kurzen Bericht zurück — nicht die ganze Datei:
+
+**1. Vorgenommene Änderungen**
+Eine Aufzählung der Änderungen, jede mit der Datei-Stelle und dem Vorher → Nachher. Nur die Stellen, die du angefasst hast.
+
+**2. Verifizierung**
+Bestätige, dass du die Datei erneut gelesen hast und die markierten Muster behoben sind. Vermerke alles, was du bewusst gelassen hast, weil es schon menschlich oder beabsichtigt war.
+
+---
+
+## Ton-Kalibrierung
+
+Das Ziel ist Text, der klingt, als hätte ihn ein Mensch geschrieben. Direkt. Konkret. Der Text sollte Selbstsicherheit zeigen, nicht behaupten.
+
+Fünf Prinzipien für menschlich klingende Umschreibungen:
+1. **Satzlänge variieren** — kurz mit lang mischen. Fragmente sind in Ordnung.
+2. **Konkret sein** — vage Behauptungen durch Zahlen, Namen, Daten oder Beispiele ersetzen.
+3. **Eine Stimme haben** — wo es passt, die Ich-Form nutzen, Vorlieben äussern, Reaktionen zeigen.
+4. **Die Neutralität streichen** — Menschen haben Meinungen. Soll der Text Stellung beziehen, beziehe sie.
+5. **Betonung verdienen** — sag dem Leser nicht, etwas sei interessant. Mach es interessant.
+
+Ist der ursprüngliche Text schon stark, sag das und mach nur die nötigen Kürzungen. Überredigiere nicht um des Redigierens willen.
+
+Die Ersetzungstabelle liefert Vorgaben, keine Pflichten. Ist ein geflaggtes Wort im Kontext klar die richtige Wahl, behalt es.
