@@ -1,27 +1,28 @@
 /**
- * Avoid AI Writing — detection engine (canonical source of truth)
- * Implements 43-category pattern detection. This repo's SKILL.md
- * catalogs the human-editable pattern rules; this engine is the executable
- * expression of the regex-detectable subset and extends it with stylometric and
- * AI-tool-fingerprint detectors that don't make sense as skill prose
- * (cross-paragraph burstiness, smart-punct signatures, function-word
- * trigram entropy, low type-token ratio, AI-tool URL parameters,
- * chatbot citation markup leaks, unfilled placeholders).
+ * Avoid AI Writing — Erkennungs-Engine (kanonische Single Source of Truth)
+ * Deutsche/Schweizer Portierung (Schweizer Schreibweise: kein Eszett, nur ss).
+ * Erkennt 43 Muster-Kategorien. Die SKILL.md dieses Repos katalogisiert die
+ * menschenlesbaren Musterregeln; diese Engine ist der ausfuehrbare Ausdruck der
+ * regex-erkennbaren Teilmenge und ergaenzt ihn um stylometrische und
+ * KI-Werkzeug-Fingerabdruck-Detektoren, die sich als Skill-Prosa nicht eignen
+ * (Burstiness ueber Absaetze, Schreib-Zeichensetzungs-Signatur, Funktionswort-
+ * Trigramm-Entropie, niedrige Type-Token-Ratio, KI-Werkzeug-URL-Parameter,
+ * durchgesickerte Chatbot-Zitat-Markup, nicht ausgefuellte Platzhalter).
  *
- * Scoring model:
- *   Each category has a weight in the ISSUE_WEIGHTS table. Detection runs
- *   produce raw (possibly duplicate) issues which are then deduplicated by
- *   (type, text) pair. rawScore is the sum of category weights across the
- *   deduped list — so the number reflects the same distinct signals the
- *   user sees in the issue list.
+ * Scoring-Modell (unveraendert gegenueber dem Original):
+ *   Jede Kategorie hat ein Gewicht in der ISSUE_WEIGHTS-Tabelle. Die
+ *   Erkennungslaeufe erzeugen rohe (moeglicherweise doppelte) Treffer, die
+ *   anschliessend nach dem Paar (type, text) dedupliziert werden. rawScore ist
+ *   die Summe der Kategorie-Gewichte ueber die deduplizierte Liste — die Zahl
+ *   spiegelt also dieselben Signale, die der Nutzer in der Trefferliste sieht.
  *
- *   Weights are deliberately non-flat across severity tags. Cutoff
- *   disclaimers (10) and chatbot artifacts (8) weigh more than vague
- *   attributions (5), even though all three are tagged `critical`, because
- *   the skill treats them as stronger or weaker AI-origin signals.
+ *   Gewichte sind ueber die Severity-Stufen bewusst ungleich. Cutoff-
+ *   Disclaimer (10) und Chatbot-Artefakte (8) wiegen mehr als vage
+ *   Attributionen (5), obwohl alle drei als `critical` markiert sind, weil
+ *   das Skill sie als staerkere oder schwaechere KI-Herkunfts-Signale behandelt.
  *
- *   rawScore is then normalized to 0-100 via `log2(wordCount/50)` so longer
- *   texts don't accumulate unboundedly on the same density of patterns.
+ *   rawScore wird dann ueber `log2(wordCount/50)` auf 0-100 normalisiert, damit
+ *   laengere Texte bei gleicher Musterdichte nicht unbegrenzt anwachsen.
  */
 
 const AIDetector = (() => {
@@ -61,12 +62,14 @@ const AIDetector = (() => {
     });
 
     // 3. Strip *roleplay-action* markers — paired *...* containing an
-    //    action verb (nods, sighs, laughs, smiles, etc.) anchored to
-    //    the start of the inner phrase. This is the actual chat-model
-    //    artifact shape. Markdown `**bold**` is rejected by the
+    //    action verb (nickt, seufzt, lacht, laechelt, nods, sighs, ...)
+    //    anchored to the start of the inner phrase. This is the actual
+    //    chat-model artifact shape. Markdown `**bold**` is rejected by the
     //    lookbehind/lookahead; legitimate multi-word `*italic*` is
-    //    preserved because the verb whitelist is narrow.
-    const ROLEPLAY_VERBS = /^(?:nods|sighs|laughs|smiles|frowns|shrugs|grins|winks|chuckles|gasps|pauses|thinks|wonders|whispers|shouts|gestures|raises|leans|turns|looks|glances|smirks|blinks|nodding|sighing|laughing|smiling|thinking|gesturing)\b/i;
+    //    preserved because the verb whitelist is narrow. Deutsche Rollenspiel-
+    //    Verben (nickt/seufzt/lacht/laechelt/fluestert/ueberlegt usw.) sind
+    //    ergaenzt; die englischen Formen bleiben fuer kopierte Chat-Ausgaben.
+    const ROLEPLAY_VERBS = /^(?:nickt|seufzt|lacht|laechelt|laechelnd|zuckt|grinst|fluestert|denkt|ueberlegt|nickend|seufzend|lachend|fluesternd|zwinkert|raeuspert|nods|sighs|laughs|smiles|frowns|shrugs|grins|winks|chuckles|gasps|pauses|thinks|wonders|whispers|shouts|gestures|raises|leans|turns|looks|glances|smirks|blinks|nodding|sighing|laughing|smiling|thinking|gesturing)\b/i;
     out = out.replace(/(?<!\*)\*([^*\n]{1,80}?)\*(?!\*)/gu, (m, inner) => {
       if (ROLEPLAY_VERBS.test(inner)) { flags.roleplay++; return ''; }
       return m;
@@ -75,149 +78,92 @@ const AIDetector = (() => {
     return { text: out, flags };
   }
 
-  // ─── Tier 1: Always flag ───────────────────────────────────────────
+  // ─── Tier 1: Immer flaggen ─────────────────────────────────────────
+  // Deutsche LLM-Tells (Single Source: docs/superpowers/research/de-tells.md).
+  // Keys kleingeschrieben, weil der Tokenizer lowercased; Substantive wie
+  // „Synergie" werden also unter „synergie" geflaggt.
   const TIER1 = {
-    'delve': 'explore, dig into, look at',
-    'tapestry': 'describe the actual complexity',
-    'paradigm': 'model, approach, framework',
-    'embark': 'start, begin',
-    'beacon': 'rewrite entirely',
-    'robust': 'strong, reliable, solid',
-    'comprehensive': 'thorough, complete, full',
-    'cutting-edge': 'latest, newest, advanced',
-    'pivotal': 'important, key, critical',
-    'underscores': 'highlights, shows',
-    'meticulous': 'careful, detailed, precise',
-    'meticulously': 'carefully, precisely',
-    'seamless': 'smooth, easy, without friction',
-    'seamlessly': 'smoothly, easily',
-    'game-changer': 'describe what changed',
-    'game-changing': 'describe what changed',
-    'utilize': 'use',
-    'nestled': 'is located, sits',
-    'vibrant': 'describe what makes it active',
-    'thriving': 'growing, active',
-    'showcasing': 'showing, demonstrating',
-    'bustling': 'busy, active',
-    'intricate': 'complex, detailed',
-    'intricacies': 'complexities, details',
-    'ever-evolving': 'changing, growing',
-    'enduring': 'lasting, long-running',
-    'daunting': 'hard, difficult',
-    'holistic': 'complete, full, whole',
-    'holistically': 'completely, fully',
-    'actionable': 'practical, useful, concrete',
-    'impactful': 'effective, significant',
-    'learnings': 'lessons, findings, takeaways',
-    'synergy': 'describe the combined effect',
-    'synergies': 'describe the combined effect',
-    'interplay': 'relationship, connection',
-    'commence': 'start, begin',
-    'ascertain': 'find out, determine',
-    'endeavor': 'effort, attempt, try',
-    'symphony': 'describe the coordination',
-    'embrace': 'adopt, accept, use',
+    'nahtlos': 'reibungslos, ohne Unterbruch, problemlos',
+    'mühelos': 'leicht, einfach, ohne Aufwand',
+    'ganzheitlich': 'umfassend benennen, was gemeint ist; oder streichen',
+    'bahnbrechend': 'neu, das erste; sagen, was konkret zuvor unmöglich war',
+    'revolutionär': 'verändernd; beschreiben, was sich ändert',
+    'revolutioniert': 'verändert, krempelt um; beschreiben, was sich ändert',
+    'vielfältig': 'verschieden, breit; oder die Vielfalt benennen',
+    'facettenreich': 'die einzelnen Aspekte nennen; oder streichen',
+    'eintauchen': 'anschauen, untersuchen, durchgehen',
+    'beleuchten': 'erklären, zeigen, darstellen',
+    'beleuchtet': 'erklärt, zeigt, stellt dar',
+    'wendepunkt': 'sagen, was sich konkret änderte; oder streichen',
+    'meilenstein': 'konkretes Ergebnis nennen (Zahl, Datum, Lieferung)',
+    'robust': 'stabil, zuverlässig, belastbar',
+    'synergie': 'das Zusammenspiel beschreiben',
+    'synergien': 'das Zusammenspiel beschreiben',
+    'zukunftsweisend': 'benennen, was es leistet',
+    'wegweisend': 'wichtig; oder benennen',
+    'herausragend': 'benennen, was es auszeichnet',
   };
 
-  // Multi-word tier 1 phrases
+  // Mehrwort-Tier-1-Phrasen
   const TIER1_PHRASES = [
-    { pattern: /\bdelve\s+into\b/gi, replace: 'explore, dig into' },
-    { pattern: /\blandscape\b/gi, replace: 'field, space, industry', filter: true },
-    { pattern: /\brealm\b/gi, replace: 'area, field, domain' },
-    { pattern: /\btestament\s+to\b/gi, replace: 'shows, proves' },
-    { pattern: /\bleverage\b/gi, replace: 'use' },
-    { pattern: /\bwatershed\s+moment\b/gi, replace: 'turning point, shift' },
-    { pattern: /\bmarking\s+a\s+pivotal\s+moment\b/gi, replace: 'state what happened' },
-    { pattern: /\bthe\s+future\s+looks\s+bright\b/gi, replace: 'cut or say something specific' },
-    { pattern: /\bonly\s+time\s+will\s+tell\b/gi, replace: 'cut or say something specific' },
-    { pattern: /\bdespite\s+challenges[^.]*continues?\s+to\s+thrive\b/gi, replace: 'name the challenge and response' },
-    { pattern: /\bdeep\s+dive\b/gi, replace: 'look at, examine' },
-    { pattern: /\bdive\s+into\b/gi, replace: 'look at, examine' },
-    { pattern: /\bunpack(?:ing)?\b/gi, replace: 'explain, break down' },
-    { pattern: /\bcomplexities\b/gi, replace: 'name the actual problems' },
-    { pattern: /\bthought\s+leader(?:ship)?\b/gi, replace: 'expert, authority' },
-    { pattern: /\bbest\s+practices\b/gi, replace: 'what works, proven methods' },
-    { pattern: /\bat\s+its\s+core\b/gi, replace: 'cut, just state it' },
-    { pattern: /\bin\s+order\s+to\b/gi, replace: 'to' },
-    { pattern: /\bdue\s+to\s+the\s+fact\s+that\b/gi, replace: 'because' },
-    { pattern: /\bserves\s+as\b/gi, replace: 'is' },
-    { pattern: /\bfeatures\b/gi, replace: 'has, includes', filter: true },
-    { pattern: /\bboasts\b/gi, replace: 'has' },
+    { pattern: /\btauchen\s+wir\s+(?:tief\s+)?ein\b/gi, replace: 'sehen wir uns an; das Thema direkt nennen' },
+    { pattern: /\beintauchen\s+in\b/gi, replace: 'ansehen, untersuchen' },
+    { pattern: /\bes\s+lohnt\s+sich,?\s+(?:zu\s+)?erwaehnen\b/gi, replace: 'die Tatsache einfach hinschreiben' },
+    { pattern: /\bein\s+zeugnis\s+(?:fuer|der|des|von)\b/gi, replace: 'zeigt, beweist, belegt' },
+    { pattern: /\bauf\s+ein\s+neues\s+(?:level|niveau)\s+(?:heben|bringen)\b/gi, replace: 'verbessern; sagen, was besser wird' },
+    { pattern: /\bin\s+der\s+welt\s+der\b/gi, replace: 'im Bereich; oder konkret benennen' },
+    { pattern: /\bim\s+bereich\s+der\b/gi, replace: 'konkret benennen' },
+    { pattern: /\bdie\s+zukunft\s+sieht\s+rosig\s+aus\b/gi, replace: 'konkret werden oder streichen' },
+    { pattern: /\bnur\s+die\s+zeit\s+wird\s+(?:es\s+)?zeigen\b/gi, replace: 'konkret werden oder streichen' },
   ];
 
-  // ─── Tier 2: Flag in clusters (2+ per paragraph) ──────────────────
+  // ─── Tier 2: Im Cluster flaggen (>= 2 pro Absatz) ─────────────────
   const TIER2 = {
-    'harness': 'use, take advantage of',
-    'navigate': 'work through, handle',
-    'navigating': 'working through, handling',
-    'foster': 'encourage, support, build',
-    'elevate': 'improve, raise, strengthen',
-    'unleash': 'release, enable, unlock',
-    'streamline': 'simplify, speed up',
-    'empower': 'enable, let, allow',
-    'bolster': 'support, strengthen',
-    'spearhead': 'lead, drive, run',
-    'resonate': 'connect with, appeal to',
-    'resonates': 'connects with, appeals to',
-    'revolutionize': 'change, transform',
-    'facilitate': 'enable, help, allow',
-    'facilitates': 'enables, helps, allows',
-    'underpin': 'support, form the basis of',
-    'nuanced': 'specific, subtle, detailed',
-    'crucial': 'important, key, necessary',
-    'multifaceted': 'describe the actual facets',
-    'ecosystem': 'system, community, network',
-    'myriad': 'many, numerous',
-    'plethora': 'many, a lot of',
-    'encompass': 'include, cover, span',
-    'catalyze': 'start, trigger, accelerate',
-    'reimagine': 'rethink, redesign, rebuild',
-    'galvanize': 'motivate, rally, push',
-    'augment': 'add to, expand, supplement',
-    'cultivate': 'build, develop, grow',
-    'illuminate': 'clarify, explain, show',
-    'elucidate': 'explain, clarify',
-    'juxtapose': 'compare, contrast',
-    'transformative': 'describe what changed',
-    'transformation': 'describe what changed',
-    'cornerstone': 'foundation, basis, key part',
-    'paramount': 'most important, top priority',
-    'poised': 'ready, set, about to',
-    'burgeoning': 'growing, emerging',
-    'nascent': 'new, early-stage',
-    'quintessential': 'typical, classic, defining',
-    'overarching': 'main, central, broad',
-    'underpinning': 'basis, foundation',
-    'underpinnings': 'basis, foundations',
-    'paradigm-shifting': 'describe what shifted',
+    'navigieren': 'bewältigen, durchkommen, umgehen mit',
+    'navigiert': 'bewältigt, kommt durch',
+    'optimieren': 'verbessern, beschleunigen, einfacher machen',
+    'optimiert': 'verbessert, beschleunigt',
+    'fördern': 'unterstützen, aufbauen',
+    'stärken': 'verbessern',
+    'ermöglichen': 'erlauben, lassen',
+    'ermöglicht': 'erlaubt, lässt',
+    'nutzen': 'verwenden, brauchen',
+    'transformativ': 'sagen, was sich ändert und wie',
+    'transformation': 'beschreiben, was sich änderte',
+    'ökosystem': 'System, Netzwerk, Umfeld, Markt',
+    'vielzahl': 'viele, mehrere, eine konkrete Zahl',
+    'fülle': 'viel, reichlich, eine konkrete Menge',
+    'eckpfeiler': 'Grundlage, Kern, wichtigster Teil',
+    'massgeblich': 'wichtig, zentral',
+    'aufkeimend': 'neu, jung, im Entstehen; oder mit Zahl belegen',
+    'entscheidend': 'wichtig, nötig',
+    'umfassend': 'vollständig, gründlich',
+    'revolutionieren': 'verändern',
+    'katalysieren': 'auslösen, beschleunigen',
+    'neugestalten': 'überdenken, umbauen',
   };
 
-  // ─── Tier 3: Flag by density ───────────────────────────────────────
+  // ─── Tier 3: Nur bei Dichte flaggen ────────────────────────────────
   const TIER3 = [
-    'significant', 'significantly', 'innovative', 'innovation',
-    'effective', 'effectively', 'dynamic', 'dynamics',
-    'scalable', 'scalability', 'compelling', 'unprecedented',
-    'exceptional', 'exceptionally', 'remarkable', 'remarkably',
-    'sophisticated', 'instrumental',
-    'world-class', 'state-of-the-art', 'best-in-class',
+    'bedeutend', 'innovativ', 'effektiv', 'dynamisch', 'dynamische',
+    'skalierbar', 'überzeugend', 'beispiellos', 'aussergewöhnlich',
+    'bemerkenswert', 'ausgeklügelt', 'hochmodern',
   ];
 
-  // Multi-word Tier 3 phrases. Density-gated like single Tier 3 words because
-  // these legitimately show up in human crypto/web3/dev writing. Threshold is
-  // intentionally lower than single-word Tier 3 (≥2 occurrences of the same
-  // phrase) — repeating the same multi-word boilerplate is a stronger AI tell
-  // than re-using "significant."
+  // Mehrwort-Tier-3-Phrasen. Dichte-gegated wie einzelne Tier-3-Woerter, weil
+  // sie in echter Schweizer Tech-/Web3-Prosa vorkommen. Schwelle bewusst
+  // niedriger als bei Einzelwoertern (>= 2 Vorkommen derselben Phrase) —
+  // dieselbe Mehrwort-Floskel zu wiederholen ist ein staerkeres KI-Tell als
+  // ein zweites „bedeutend".
   const TIER3_PHRASES = [
-    /\bemerging\s+(?:sector|space|category|industry)\b/gi,
-    /\bthe\s+integration\s+of\b/gi,
-    /\bthe\s+intersection\s+of\b/gi,
-    /\bcommunity-?driven\b/gi,
-    /\blong-?term\s+sustainability\b/gi,
-    /\buser\s+engagement\b/gi,
-    /\bdecentralized\s+compute\b/gi,
-    /\b(?:sustainable\s+)?reward\s+emissions?\b/gi,
-    /\btokenized\s+incentive\s+structures?\b/gi,
-    /\bdesigned\s+for\s+long-?term\b/gi,
+    /\bdie\s+integration\s+von\b/gi,
+    /\bdie\s+schnittstelle\s+von\b/gi,
+    /\bcommunity-?getrieben\b/gi,
+    /\blangfristige\s+nachhaltigkeit\b/gi,
+    /\bnutzer-?engagement\b/gi,
+    /\bdezentrale\s+rechenleistung\b/gi,
+    /\bnachhaltige\s+token-?ausschuettungen?\b/gi,
+    /\btokenisierte\s+anreizstrukturen?\b/gi,
   ];
 
   // O(1) lookup from any token form (hyphenated or dashless) to its canonical
@@ -273,7 +219,7 @@ const AIDetector = (() => {
     'future-narrative': 12,
     'real-actual-inflation': 5,
     'formulaic-opener': 8,
-    'title-case-header': 4,
+    'nominalstil': 3,
     'parenthetical-hedge': 3,
     'smart-punct-signature': 6,
     'punct-distribution': 6,
@@ -297,182 +243,188 @@ const AIDetector = (() => {
     'ai-utm-source': 12,
   };
 
-  // ─── Transition phrases ────────────────────────────────────────────
+  // ─── Uebergangs-Floskeln ────────────────────────────────────────────
   const TRANSITIONS = [
-    /\bmoreover\b/gi,
-    /\bfurthermore\b/gi,
-    /\badditionally\b/gi,
-    /\bin\s+today'?s\b/gi,
-    /\bin\s+an\s+era\s+where\b/gi,
-    /\bit'?s\s+worth\s+noting\s+that\b/gi,
-    /\bnotably\b/gi,
-    /\bin\s+conclusion\b/gi,
-    /\bin\s+summary\b/gi,
-    /\bto\s+summarize\b/gi,
-    /\bwhen\s+it\s+comes\s+to\b/gi,
-    /\bat\s+the\s+end\s+of\s+the\s+day\b/gi,
-    /\bthat\s+(?:being\s+)?said\b/gi,
+    /\bdarüber\s+hinaus\b/gi,
+    /\bdes\s+weiteren\b/gi,
+    /\bzudem\b/gi,
+    /\bferner\b/gi,
+    // Woerter, die mit einem Umlaut beginnen, brauchen einen
+    // Lookbehind-Anker statt `\b` (ohne u-Flag ist `ü` kein Wortzeichen,
+    // sodass `\bü` nie matcht). (?<![\wäöü]) = kein vorangehendes Wortzeichen.
+    /(?<![\wäöü])überdies\b/gi,
+    /\babschliessend\b/gi,
+    /\bzusammenfassend\b/gi,
+    /\bletztendlich\b/gi,
+    /\bin\s+der\s+heutigen\b/gi,
+    /\bin\s+einer\s+zeit,?\s+in\s+der\b/gi,
+    /\bwenn\s+es\s+um\s+.{1,40}\s+geht\b/gi,
   ];
 
-  // ─── Chatbot artifacts ─────────────────────────────────────────────
+  // ─── Chatbot-Artefakte ─────────────────────────────────────────────
   const CHATBOT_ARTIFACTS = [
-    /\bi\s+hope\s+this\s+helps\b/gi,
-    /\bcertainly!\b/gi,
-    /\babsolutely!\b/gi,
-    /\bgreat\s+question!\b/gi,
-    /\bexcellent\s+point!\b/gi,
-    /\bfeel\s+free\s+to\s+reach\s+out\b/gi,
-    /\blet\s+me\s+know\s+if\s+you\s+need\s+anything\b/gi,
-    /\bin\s+this\s+article,?\s+we\s+will\s+explore\b/gi,
-    /\blet'?s\s+dive\s+in!?\b/gi,
+    /\bgerne!/gi,
+    /\bnatürlich!/gi,
+    /\baber\s+gerne\b/gi,
+    /\bgerne\s+helfe\s+ich\s+dir\s+weiter\b/gi,
+    /\bich\s+hoffe,?\s+(?:das|dies)\s+hilft\s+dir\s+weiter\b/gi,
+    /\bich\s+hoffe,?\s+(?:das|dies)\s+hilft\b/gi,
+    /\bzögere\s+nicht,?\s+(?:mich|uns)?\s*(?:zu\s+kontaktieren)?\b/gi,
+    /\bmelde\s+dich\s+gern\b/gi,
+    /\blass\s+es\s+mich\s+wissen\b/gi,
+    /\bin\s+diesem\s+artikel\s+werden\s+wir\b/gi,
+    /\bich\s+hoffe,?\s+diese\s+e-?mail\s+erreicht\s+sie\s+gut\b/gi,
   ];
 
-  // ─── Sycophantic tone ──────────────────────────────────────────────
+  // ─── Schmeichelhafter Ton ──────────────────────────────────────────
   const SYCOPHANTIC = [
-    /\byou'?re\s+absolutely\s+right\b/gi,
-    /\bthat'?s\s+a\s+really\s+insightful\b/gi,
-    /\bthat'?s\s+a\s+great\s+question\b/gi,
-    /\bexcellent\s+question\b/gi,
+    /\b(?:das\s+ist\s+eine\s+)?grossartige\s+frage\b/gi,
+    /\bdas\s+ist\s+eine\s+ausgezeichnete\s+frage\b/gi,
+    /\bdu\s+hast\s+(?:völlig|vollkommen)\s+recht\b/gi,
+    /\beine\s+sehr\s+aufschlussreiche\b/gi,
+    /\bdas\s+ist\s+ein\s+sehr\s+aufschlussreicher\s+punkt\b/gi,
   ];
 
-  // ─── Filler phrases ────────────────────────────────────────────────
+  // ─── Fuell-Floskeln ────────────────────────────────────────────────
   const FILLERS = [
-    /\bit\s+is\s+important\s+to\s+note\s+that\b/gi,
-    /\bin\s+terms\s+of\b/gi,
-    /\bthe\s+reality\s+is\s+that\b/gi,
-    /\bit'?s\s+important\s+to\s+note\s+that\b/gi,
+    /\bes\s+ist\s+wichtig\s+zu\s+beachten,?\s+dass\b/gi,
+    /\bes\s+ist\s+wichtig\s+zu\s+erwähnen,?\s+dass\b/gi,
+    /\bes\s+ist\s+erwähnenswert,?\s+dass\b/gi,
+    /\bes\s+sei\s+darauf\s+hingewiesen,?\s+dass\b/gi,
+    /\bim\s+hinblick\s+auf\b/gi,
+    /\bin\s+bezug\s+auf\b/gi,
+    /\btatsache\s+ist,?\s+dass\b/gi,
   ];
 
-  // ─── Generic conclusions ───────────────────────────────────────────
+  // ─── Generische Schluesse ──────────────────────────────────────────
   const GENERIC_CONCLUSIONS = [
-    /\bthe\s+future\s+looks\s+bright\b/gi,
-    /\bonly\s+time\s+will\s+tell\b/gi,
-    /\bone\s+thing\s+is\s+certain\b/gi,
-    /\bas\s+we\s+move\s+forward\b/gi,
+    /\bdie\s+zukunft\s+(?:sieht|ist)\s+(?:rosig|vielversprechend)\b/gi,
+    /\bnur\s+die\s+zeit\s+wird\s+(?:es\s+)?zeigen\b/gi,
+    /\beines\s+ist\s+sicher\b/gi,
+    /\bwenn\s+wir\s+nach\s+vorne\s+blicken\b/gi,
+    /\bzusammenfassend\s+lässt\s+sich\s+sagen\b/gi,
+    /\babschliessend\s+lässt\s+sich\s+festhalten\b/gi,
+    /\binsgesamt\s+zeigt\s+sich,?\s+dass\b/gi,
+    /\bes\s+bleibt\s+abzuwarten,?\s+(?:wie|ob)\b/gi,
   ];
 
-  // ─── "Let's" constructions ─────────────────────────────────────────
+  // ─── „Lassen Sie uns"-Konstruktionen ───────────────────────────────
   const LETS_PATTERNS = [
-    /\blet'?s\s+explore\b/gi,
-    /\blet'?s\s+take\s+a\s+look\b/gi,
-    /\blet'?s\s+break\s+this\s+down\b/gi,
-    /\blet'?s\s+examine\b/gi,
-    /\blet'?s\s+(?:consider|discuss|delve|unpack|walk\s+through)\b/gi,
+    /\blassen\s+sie\s+uns\b/gi,
+    /\blasst\s+uns\b/gi,
+    /\blass\s+uns\s+(?:eintauchen|gemeinsam\s+erkunden|das\s+aufschlüsseln|erkunden)\b/gi,
+    /\bschauen\s+wir\s+uns\s+.{0,30}?\s*an\b/gi,
+    /\bwerfen\s+wir\s+einen\s+blick\b/gi,
+    /\bbetrachten\s+wir\b/gi,
+    /\bgehen\s+wir\s+.{0,30}?\s*durch\b/gi,
   ];
 
-  // ─── Reasoning chain artifacts ─────────────────────────────────────
+  // ─── Reasoning-Artefakte (verbalisierte Chain-of-Thought) ──────────
   const REASONING_ARTIFACTS = [
-    /\blet\s+me\s+think\s+step\s+by\s+step\b/gi,
-    /\bbreaking\s+this\s+down\b/gi,
-    /\bto\s+approach\s+this\s+systematically\b/gi,
-    /\bhere'?s\s+my\s+thought\s+process\b/gi,
-    /\bfirst,?\s+let'?s\s+consider\b/gi,
-    /\bworking\s+through\s+this\s+logically\b/gi,
+    /\bschritt\s+für\s+schritt\s+(?:durchgehen|durch)\b/gi,
+    /\blass(?:t|\s+mich)?\s+(?:uns\s+)?das\s+(?:schritt\s+für\s+schritt\s+)?(?:durchgehen|aufschlüsseln)\b/gi,
+    /\bgehen\s+wir\s+(?:das\s+)?systematisch\s+(?:an|vor)\b/gi,
+    /\bhier\s+ist\s+mein\s+gedankengang\b/gi,
+    /(?<![\wäöü])überlegen\s+wir\s+zunächst\b/gi,
+    /\blass\s+mich\s+(?:kurz\s+)?nachdenken\b/gi,
   ];
 
-  // ─── Acknowledgment loops ──────────────────────────────────────────
+  // ─── Quittungs-Schleifen (Acknowledgment-Loops) ────────────────────
   const ACKNOWLEDGMENT_LOOPS = [
-    /\byou'?re\s+asking\s+about\b/gi,
-    /\bthe\s+question\s+of\s+whether\b/gi,
-    /\bto\s+answer\s+your\s+question\b/gi,
+    /\bdu\s+fragst\s+(?:dich\s+)?(?:vielleicht\s+)?(?:nach|warum|wie|ob)?\b/gi,
+    /\bum\s+(?:deine|ihre)\s+frage\s+zu\s+beantworten\b/gi,
+    /\bdie\s+frage,?\s+ob\b/gi,
   ];
 
-  // ─── Significance inflation ────────────────────────────────────────
+  // ─── Bedeutungs-Inflation ──────────────────────────────────────────
   const SIGNIFICANCE_INFLATION = [
-    /\bmarking\s+a\s+(?:pivotal|significant|important)\s+moment\b/gi,
-    /\ba\s+watershed\s+moment\s+for\b/gi,
-    /\bin\s+the\s+evolution\s+of\b/gi,
-    /\ba\s+(?:pivotal|defining)\s+moment\s+in\b/gi,
+    /\bmarkiert\s+einen\s+wendepunkt\b/gi,
+    /\bein\s+meilenstein\s+(?:für|in)\b/gi,
+    /\bin\s+der\s+entwicklung\s+von\b/gi,
+    /\bein\s+(?:entscheidender|prägender)\s+moment\b/gi,
+    /\bspielt\s+eine\s+(?:entscheidende|wichtige|zentrale)\s+rolle\b/gi,
   ];
 
-  // ─── Vague attributions ────────────────────────────────────────────
+  // ─── Vage Attributionen ────────────────────────────────────────────
   const VAGUE_ATTRIBUTIONS = [
-    /\bexperts\s+(?:believe|say|suggest|agree)\b/gi,
-    /\bstudies\s+(?:show|suggest|indicate)\b/gi,
-    /\bresearch\s+(?:shows|suggests|indicates)\b/gi,
-    /\bindustry\s+leaders\s+(?:agree|believe|say)\b/gi,
+    /\bexperten\s+(?:glauben|sagen|gehen\s+davon\s+aus|sind\s+sich\s+einig)\b/gi,
+    /\bstudien\s+(?:zeigen|belegen|legen\s+nahe|deuten\s+darauf\s+hin)\b/gi,
+    /\b(?:die\s+)?forschung\s+(?:zeigt|legt\s+nahe|deutet\s+darauf\s+hin)\b/gi,
+    /\bbranchenführer\s+sind\s+sich\s+einig\b/gi,
   ];
 
-  // ─── Hollow intensifiers ──────────────────────────────────────────
+  // ─── Hohle Verstaerker ─────────────────────────────────────────────
   const HOLLOW_INTENSIFIERS = [
-    /\bgenuine(?:ly)?\b/gi,
-    /\btruly\b/gi,
-    /\bquite\s+frankly\b/gi,
-    /\bto\s+be\s+honest\b/gi,
-    /\blet'?s\s+be\s+clear\b/gi,
+    /\bwirklich\b/gi,
+    /\behrlich\s+gesagt\b/gi,
+    /\bum\s+ehrlich\s+zu\s+sein\b/gi,
+    /\bin\s+der\s+tat\b/gi,
+    /\bseien\s+wir\s+ehrlich\b/gi,
+    /\bes\s+lohnt\s+sich,?\s+einen\s+genaueren\s+blick\b/gi,
   ];
 
-  // ─── Emotional flatline ────────────────────────────────────────────
-  // The "interesting (part|thing|aspect|piece)" family is matched in two
-  // shapes: (1) "the most interesting X" inline (the canonical AI list
-  // intro), and (2) bare "Interesting X:" used as a section-header opener,
-  // which is the section-break variant that slipped past v3.3.x.
+  // ─── Emotionale Flachheit ──────────────────────────────────────────
+  // „besonders faszinierend"/„spannend"-Familie als vorgeschaltetes
+  // Gefuehls-Etikett, plus die Listen-Intro-Wendung „was mich am meisten
+  // ueberrascht hat". /m, damit `^`-Anker auch an Position 0 greift.
   const EMOTIONAL_FLATLINE = [
-    /\bwhat\s+surprised\s+me\s+most\b/gi,
-    /\bi\s+was\s+fascinated\s+to\b/gi,
-    /\bwhat\s+struck\s+me\s+was\b/gi,
-    /\bi\s+was\s+excited\s+to\s+learn\b/gi,
-    /\bthe\s+most\s+interesting\s+(?:part|thing|aspect|piece)\b/gi,
-    // Multiline flag (/m) so `^` matches at every line start, including
-    // position 0 of a pasted text that has no leading newline. The earlier
-    // `(?:^|\n)` form silently missed bare openers at the very start of
-    // input — caught by silent-failure audit 2026-05-16.
-    /^\s*interesting\s+(?:part|thing|aspect|piece)(?:\s+of\s+(?:the\s+)?\w+)?\s*:/gim,
+    /\bwas\s+mich\s+am\s+meisten\s+überrascht\s+(?:hat|hatte)\b/gi,
+    /\bfaszinierend\s+(?:war|fand\s+ich)\b/gi,
+    /\b(?:besonders|wirklich)\s+faszinierend\s+ist\b/gi,
+    /\bwas\s+mich\s+(?:beeindruckt|beeindruckte)\s+(?:hat|hatte)?\b/gi,
+    /\bbesonders\s+spannend\s+war\b/gi,
+    /\bes\s+bleibt\s+spannend\s+zu\s+sehen\b/gi,
+    /\bdas\s+interessanteste\s+(?:teil|daran)\b/gi,
   ];
 
-  // ─── Novelty inflation ─────────────────────────────────────────────
+  // ─── Neuheits-Inflation ────────────────────────────────────────────
   const NOVELTY_INFLATION = [
-    /\bthe\s+failure\s+mode\s+nobody'?s?\s+naming\b/gi,
-    /\ba\s+problem\s+nobody\s+talks\s+about\b/gi,
-    /\bthe\s+insight\s+everyone'?s?\s+missing\b/gi,
-    /\bwhat\s+nobody\s+tells\s+you\b/gi,
+    /\bein\s+(?:begriff|problem),?\s+(?:den|über\s+das)\s+niemand\s+(?:nennt|spricht)\b/gi,
+    /\bein\s+problem,?\s+über\s+das\s+niemand\s+spricht\b/gi,
+    /\bwas\s+dir\s+niemand\s+sagt\b/gi,
+    /\bdie\s+(?:erkenntnis|wahrheit),?\s+die\s+alle\s+übersehen\b/gi,
   ];
 
-  // ─── Cutoff disclaimers ────────────────────────────────────────────
-  // Includes the canonical LLM self-identification phrases — these are
-  // near-dispositive on their own (real humans don't write "as an AI
-  // language model" in first person). Patterns cover the major model
-  // families' default disclaimer language.
+  // ─── Cutoff-Disclaimer ─────────────────────────────────────────────
+  // Enthaelt die kanonischen LLM-Selbstauskunfts-Phrasen — fuer sich allein
+  // nahezu beweisend (ein Mensch schreibt nie „als KI-Sprachmodell" in der
+  // Ich-Form). Die Muster decken die Default-Disclaimer der grossen Modell-
+  // familien ab. „als ki-sprachmodell" ist gemaess Plan zwingend enthalten.
   const CUTOFF_DISCLAIMERS = [
-    /\bas\s+of\s+my\s+last\s+update\b/gi,
-    /\bas\s+of\s+my\s+(?:knowledge\s+)?(?:cut-?off|last\s+training)\b/gi,
-    /\bi\s+don'?t\s+have\s+access\s+to\s+real-?time\s+(?:data|information)\b/gi,
-    /\bbased\s+on\s+available\s+information\b/gi,
-    /\bas\s+an?\s+(?:ai|artificial\s+intelligence|large\s+language|ai\s+language)\s+(?:language\s+)?model\b/gi,
-    /\bi\s+(?:am|'m)\s+an?\s+(?:ai|artificial\s+intelligence|large\s+language)\s+(?:assistant|model)?\b/gi,
-    /\bi\s+cannot\s+(?:provide|give|offer)\s+(?:legal|medical|financial|professional)\s+advice\b/gi,
-    /\bmy\s+training\s+data\s+(?:only\s+)?(?:goes\s+up\s+to|extends\s+to|ends\s+(?:in|at))\b/gi,
+    /\bals\s+ki-?sprachmodell\b/gi,
+    /\bals\s+künstliche\s+intelligenz\s+habe\s+ich\s+keinen\s+zugriff\b/gi,
+    /\bals\s+künstliche\s+intelligenz\b/gi,
+    /\bstand\s+meines\s+letzten\s+updates\b/gi,
+    /\bmein\s+wissensstand\s+reicht\s+bis\b/gi,
+    /\bich\s+habe\s+keinen\s+zugriff\s+auf\s+echtzeitdaten\b/gi,
+    /\bbasierend\s+auf\s+den\s+verfügbaren\s+informationen\b/gi,
   ];
 
-  // ─── AI-tool fingerprints ──────────────────────────────────────────
-  // Three near-definitive AI-origin signals adapted from
-  // Aboudjem/humanizer-skill P33-P35 (see docs/competitive/audits/
-  // 2026-05-17-aboudjem-humanizer-skill.md). Unlike the statistical
-  // patterns above, single hit on any of these is strong evidence —
-  // the AI tool literally left its fingerprint in the text.
+  // ─── KI-Werkzeug-Fingerabdruecke ───────────────────────────────────
+  // Drei nahezu beweisende KI-Herkunfts-Signale (uebernommen aus dem
+  // Original, Aboudjem/humanizer-skill P33-P35). Anders als die
+  // statistischen Muster oben ist ein einziger Treffer hier starkes Indiz —
+  // das KI-Werkzeug hat seinen Fingerabdruck buchstaeblich hinterlassen.
 
-  // Unfilled slot-fill placeholders. Catches the canonical "[Your Name]"
-  // family plus dated stubs and HTML/MD comments with placeholder verbs.
+  // Nicht ausgefuellte Slot-Platzhalter. Faengt die kanonische „[Ihr Name]"-
+  // Familie plus Datums-Schablonen und HTML/MD-Kommentare mit Platzhalter-
+  // Verben. Die englischen Verb-Slots bleiben fuer kopierte KI-Vorlagen.
   const AI_PLACEHOLDERS = [
-    // Directive stubs ("[Your Name]", "[INSERT SOURCE URL]",
-    // "[Describe the specific section]") — verb-led, the user was
-    // told to fill in.
-    /\[(?:Your|Insert|Add|Enter|Describe|Specify|Choose|Pick)[^\]\n]{1,80}\]/gi,
-    // Noun-only template variables common in AI-generated email or
-    // letter boilerplate. Match the bare noun OR noun + qualifier.
-    // Conservative list: only nouns that almost never appear as
-    // bracketed real content (citation refs, code identifiers, etc.
-    // are excluded because they typically contain dots, slashes,
-    // hyphens, or version numbers).
-    /\[(?:Recipient|Sender|Topic|Subject|Salutation|Closing|Position|Department|Project Name|Company Name|Date)(?:\s+[^\]\n]{0,60})?\]/gi,
-    // All-caps directive forms ("[INSERT X]", "[FILL IN]") — the
-    // uppercase tells you it's a slot, not real content.
-    /\[(?:INSERT|FILL\s+IN|ADD|TODO|TBD|PLACEHOLDER)[^\]\n]{0,80}\]/g,
-    // Date stubs.
+    // Direktive Slots mit Possessiv („[Ihr Name]", „[Dein Name]",
+    // „[Euer Betreff]") — verbartig, der Nutzer sollte sie ausfuellen.
+    /\[(?:Ihr|Ihre|Dein|Deine|Euer|Eure|Your|Insert|Add|Enter|Describe|Specify|Choose|Pick)[^\]\n]{1,60}\]/gi,
+    // Nomen-Slots aus KI-Mail-/Brief-Boilerplate. Konservative Liste: nur
+    // Nomen, die fast nie als geklammerter Echtinhalt vorkommen.
+    /\[(?:Name|Quelle|Firmenname|Firma|Empfänger|Absender|Betreff|Thema|Datum|Abteilung|Position|Anrede|Grussformel|Projektname|Recipient|Sender|Topic|Subject|Company Name|Date)(?:\s+[^\]\n]{0,60})?\]/gi,
+    // Grossbuchstaben-Direktiven („[QUELLE EINFÜGEN]", „[HIER AUSFÜLLEN]")
+    // — die Grossschreibung verraet den Slot statt Echtinhalt.
+    /\[(?:[A-ZÄÖÜ\s]{0,40}(?:EINFÜGEN|EINTRAGEN|AUSFÜLLEN|HINZUFÜGEN|ERGÄNZEN|PLATZHALTER)|INSERT|FILL\s+IN|ADD|TODO|TBD|PLACEHOLDER)[^\]\n]{0,80}\]/g,
+    // Datums-Schablonen (deutsches und englisches Format).
+    /\bTT\.MM\.(?:JJJJ|JJ)\b/g,
     /\b(?:19|20)\d{2}-XX-XX\b/g,
     /\bXX\/XX\/(?:19|20)\d{2}\b/g,
-    // HTML/Markdown comment placeholders with placeholder verbs.
-    /<!--\s*(?:add|fill\s+in|insert|todo|placeholder)[^>]{0,120}-->/gi,
+    // HTML-/Markdown-Kommentar-Platzhalter mit Platzhalter-Verben.
+    /<!--\s*(?:einfügen|ausfüllen|ergänzen|add|fill\s+in|insert|todo|placeholder)[^>]{0,120}-->/gi,
   ];
 
   // Chatbot citation/markup tokens that leak through copy-paste.
@@ -494,102 +446,112 @@ const AIDetector = (() => {
     /[?&]referrer=(?:chatgpt|copilot|grok|claude|gemini|perplexity)\.(?:com|ai)\b/gi,
   ];
 
-  // ─── Template phrases ──────────────────────────────────────────────
+  // ─── Template-Phrasen ──────────────────────────────────────────────
   const TEMPLATE_PHRASES = [
-    /\ba\s+\w+\s+step\s+(?:towards?|forward\s+for)\b/gi,
-    /\bwhether\s+you'?re\s+\w+\s+or\s+\w+/gi,
-    /\bi\s+recently\s+had\s+the\s+pleasure\s+of\b/gi,
+    /\bein\s+(?:wichtiger|grosser|bedeutender|entscheidender)?\s*schritt\s+in\s+richtung\b/gi,
+    /\bob\s+(?:sie|du)\s+nun\s+\S+\s+oder\s+\S+\s+(?:sind|bist)\b/gi,
+    /\bich\s+hatte\s+(?:kürzlich|vor\s+kurzem)\s+das\s+vergnügen\b/gi,
   ];
 
-  // ─── False concession ──────────────────────────────────────────────
+  // ─── Schein-Zugestaendnis ──────────────────────────────────────────
   const FALSE_CONCESSION = [
-    /\bwhile\s+\w+\s+is\s+impressive\b/gi,
-    /\balthough\s+\w+\s+has\s+made\s+strides\b/gi,
-    /\bdespite\s+\w+\s+challenges?\b/gi,
+    /\bzwar\s+ist\s+.{1,40}\s+beeindruckend,?\s+(?:doch|aber)\b/gi,
+    /\bobwohl\s+.{1,40}\s+fortschritte\s+gemacht\s+hat\b/gi,
   ];
 
-  // ─── Rhetorical question openers ───────────────────────────────────
+  // ─── Rhetorische Frage-Eroeffnungen ────────────────────────────────
   const RHETORICAL_QUESTIONS = [
-    /\bbut\s+what\s+does\s+this\s+mean\s+for\b/gi,
-    /\bso\s+why\s+should\s+you\s+care\b/gi,
-    /\bwhat'?s\s+next\?\s*/gi,
+    /\baber\s+was\s+bedeutet\s+das\s+für\b/gi,
+    /\bwarum\s+(?:sollte\s+(?:dich|sie)\s+das\s+interessieren|ist\s+das\s+wichtig)\b/gi,
+    /\bwie\s+geht\s+es\s+(?:nun\s+)?weiter\b/gi,
+    /\bwas\s+kommt\s+als\s+nächstes\?/gi,
   ];
 
-  // ─── Hedge-stacked predictions ─────────────────────────────────────
-  // Stacks a modal with a hedge adverb: "could potentially create new
-  // opportunities", "may eventually unlock value." Either word alone is
-  // fine; the stack is the tell.
+  // ─── Hedge-gestapelte Aussagen ─────────────────────────────────────
+  // Stapelt ein Modalverb mit einem Hedge-Adverb: „koennte moeglicherweise",
+  // „duerfte letztlich eventuell". Jedes Wort fuer sich ist normal; die
+  // Stapelung ist das Tell.
   const HEDGE_STACK = [
-    /\b(?:could|may|might)\s+(?:\w+\s+){0,2}(?:potentially|eventually|ultimately|possibly|conceivably)\b/gi,
-    /\b(?:potentially|eventually|ultimately)\s+(?:could|may|might)\b/gi,
+    /\b(?:könnte|dürfte|mag|kann|würde)\s+(?:\S+\s+){0,3}(?:möglicherweise|eventuell|letztlich|womöglich|unter\s+umständen|vermutlich)\b/gi,
+    /\b(?:möglicherweise|eventuell|letztlich|womöglich)\s+(?:\S+\s+){0,2}(?:könnte|dürfte|mag|kann)\b/gi,
   ];
 
-  // ─── Generic future-narrative closers ──────────────────────────────
-  // The "may become one of the most important narratives" template — vague
-  // future significance with no falsifiable claim. Covers narratives /
-  // stories / trends / themes / chapters / movements.
+  // ─── Generische Zukunfts-Narrativ-Schluesse ────────────────────────
+  // Das „koennte zu einem der wichtigsten Narrative … werden"-Template —
+  // vage Zukunftsbedeutung ohne falsifizierbare Aussage.
   const FUTURE_NARRATIVE = [
-    /\b(?:may|could|will|is\s+(?:poised|set)\s+to)\s+become\s+(?:one\s+of\s+)?(?:the\s+)?(?:most\s+)?\w+\s+(?:narratives?|stories|developments?|trends?|movements?|chapters?|themes?|forces?)\b/gi,
-    /\bone\s+of\s+the\s+most\s+important\s+(?:narratives?|stories|trends?|themes?)\s+of\s+the\s+(?:next|coming)\s+\w+\b/gi,
+    /\b(?:könnte|dürfte|wird|mag)\s+(?:\S+\s+){0,4}zu\s+(?:einem|einer)\s+der\s+(?:wichtigsten|bedeutendsten|entscheidendsten|grössten)\s+(?:\S+\s+){0,3}(?:narrative|geschichten|trends|themen|entwicklungen|kräfte)\s+(?:\S+\s+){0,4}werden\b/gi,
+    /\b(?:könnte|dürfte)\s+zu\s+(?:einem|einer)\s+(?:entscheidenden|wichtigen|prägenden)\s+(?:trend|narrativ|entwicklung)\s+werden\b/gi,
   ];
 
-  // ─── "Real/actual" adjective inflation ─────────────────────────────
-  // "Real on-chain tokenomics", "actual reward sustainability" — using
-  // real/actual/genuine/true as an empty intensifier on an abstract noun
-  // to imply the rest of the field is fake/superficial.
+  // ─── „Echt/tatsaechlich"-Adjektiv-Inflation ────────────────────────
+  // „echte Wertschoepfung", „tatsaechlicher Nutzen" — echt/wahr/tatsaechlich
+  // als leerer Verstaerker vor einem abstrakten Nomen, der unterstellt, der
+  // Rest der Branche sei unecht.
   const REAL_ACTUAL_INFLATION = [
-    /\b(?:real|actual|genuine|true)\s+(?:on-?chain\s+)?(?:tokenomics|economics|utility|adoption|sustainability|impact|revenue|fundamentals|demand|value|innovation|traction)\b/gi,
+    /\b(?:echte|echter|echtes|echten|tatsächliche|tatsächlicher|tatsächlichen|wahre|wahrer|wahres)\s+(?:tokenomics|nutzen|akzeptanz|nachhaltigkeit|wirkung|nachfrage|wertschöpfung|wertschoepfung|innovation|substanz|relevanz)\b/gi,
   ];
 
-  // ─── Formulaic openers ─────────────────────────────────────────────
-  // The "In the rapidly evolving world of X, Y has emerged as..." family
-  // — LLM-default essay openers.
+  // ─── Formelhafte Eroeffnungen ──────────────────────────────────────
+  // Die „In der heutigen schnelllebigen Welt …"-Familie — LLM-Default-
+  // Aufmacher fuer Essay-/Marketing-Prosa.
   const FORMULAIC_OPENERS = [
-    /\bin\s+the\s+(?:rapidly\s+|ever-?\s*)?(?:evolving|changing|expanding|growing|shifting)\s+(?:world|landscape|realm|space|field|domain|era)\s+of\b/gi,
-    /\bin\s+(?:an?|the)\s+(?:digital\s+)?age\s+(?:where|of)\b/gi,
-    /\bas\s+(?:we|the\s+world|society|industries?)\s+(?:continue|move|navigate|enter)\s+(?:to\s+)?(?:evolve|forward|into|through)\b/gi,
-    // "has emerged as a leader/force/category" — gated to the inflated
-    // nouns that signal pseudo-significance, since bare "has emerged as
-    // a" matches normal English ("Rust has emerged as a serious systems
-    // language"). Same gating for "has become increasingly".
-    /\bhas\s+emerged\s+as\s+(?:a|the|one\s+of)\s+(?:leading|key|major|critical|essential|fundamental|pivotal|prominent|dominant|important)\s+\w+/gi,
-    /\bhas\s+become\s+increasingly\s+(?:important|critical|popular|relevant|prominent|essential)\b/gi,
+    /\bin\s+der\s+heutigen\s+(?:schnelllebigen|digitalen|vernetzten|modernen)\s+welt\b/gi,
+    /\bin\s+einer\s+(?:zeit|welt),?\s+in\s+der\b/gi,
+    /\bhat\s+sich\s+als\s+(?:führend|wegweisend|zentral|unverzichtbar)\s+etabliert\b/gi,
+    /\bwird\s+(?:immer|zunehmend)\s+(?:wichtiger|relevanter|bedeutender)\b/gi,
   ];
 
-  // ─── Title Case Section Headers in non-technical prose ─────────────
-  // "Strategic Negotiations And Key Partnerships" — every content word
-  // capitalized. Acceptable in API docs, ML papers, news headlines. Tell
-  // in marketing/personal/blog prose. Gated to "personal" / "marketing"
-  // context modes (technical mode skips this check).
-  const TITLE_CASE_HEADER = /^([A-Z][a-z]+(?:\s+(?:[A-Z][a-z]+|and|or|of|the|in|for|to|a|an))+\s+[A-Z][a-z]+)\s*$/gm;
+  // ─── Nominalstil / Funktionsverbgefuege (NEU, deutsch) ─────────────
+  // Funktionsverbgefuege wie „zur Verfuegung stellen", „in Anspruch nehmen",
+  // „Durchfuehrung von" blaehen den Satz auf und ersetzen das Vollverb.
+  // Deutsches LLM-Kern-Tell, das im Englischen kein Aequivalent hat (ersetzt
+  // die gestrichene Title-Case-Regel). Quelle: de-tells.md, Abschnitt
+  // nominalstil.
+  const NOMINALSTIL = [
+    /\bzur\s+verfügung\s+(?:stellen|gestellt|stehen|steht)\b/gi,
+    /\bin\s+anspruch\s+(?:nehmen|genommen)\b/gi,
+    /\bzum\s+einsatz\s+(?:kommen|kommt|gebracht)\b/gi,
+    /\bzur\s+anwendung\s+(?:kommen|kommt|bringen)\b/gi,
+    /\bunter\s+beweis\s+(?:stellen|gestellt)\b/gi,
+    /\bdie\s+durchführung\s+(?:von|der|des)\b/gi,
+    /\beine\s+(?:entscheidende|wichtige)\s+rolle\s+spielen\b/gi,
+    /\beinen\s+beitrag\s+(?:leisten|leistet)\b/gi,
+    /\bvon\s+(?:grosser|grösster)\s+bedeutung\s+(?:sein|ist)\b/gi,
+  ];
 
-  // ─── Parenthetical hedging asides ──────────────────────────────────
-  // "(and increasingly, X)", "(or more precisely, Y)", "(though to be
-  // fair, Z)" — pseudo-aside that adds no information but performs
-  // thoughtfulness. Different from genuine human parentheticals which
-  // tend to be tangents or clarifications, not hedges.
+  // ─── Parenthetische Hedge-Einschuebe ───────────────────────────────
+  // „(und zunehmend auch X)", „(oder genauer gesagt, Y)", „(zumindest in
+  // der Theorie)" — Pseudo-Beiseite, das keine Information liefert, sondern
+  // Nachdenklichkeit auffuehrt.
   const PARENTHETICAL_HEDGE = [
-    /\(\s*(?:and\s+)?(?:increasingly|notably|importantly|crucially|interestingly|perhaps)[,]?\s+[^)]{3,60}\)/gi,
-    /\(\s*or\s+more\s+(?:precisely|accurately|specifically)[,]?\s+[^)]{3,60}\)/gi,
-    /\(\s*though\s+to\s+be\s+fair[,]?\s+[^)]{3,60}\)/gi,
-    /\(\s*at\s+least\s+(?:in\s+)?(?:theory|principle|part)[,]?\s+[^)]{0,60}\)/gi,
+    /\(\s*(?:und\s+)?(?:zunehmend|insbesondere|vor\s+allem|bemerkenswerterweise|vielleicht)[,]?\s+[^)]{3,60}\)/gi,
+    /\(\s*(?:oder\s+)?genauer\s+gesagt[,]?\s+[^)]{3,60}\)/gi,
+    /\(\s*zumindest\s+(?:in\s+der\s+)?(?:theorie|theoretisch|prinzip|teilweise)[,]?\s*[^)]{0,60}\)/gi,
   ];
 
-  // ─── Confidence calibration ────────────────────────────────────────
+  // ─── Confidence-Kalibrierung ───────────────────────────────────────
+  // Vorgeschaltete Bewertungs-Adverbien auf -weise, die LLMs streuen, um
+  // Gewicht vorzutaeuschen. Erst bei Stapelung (>= 3) geflaggt.
   const CONFIDENCE_CALIBRATION = [
-    /\binterestingly\b/gi,
-    /\bsurprisingly\b/gi,
-    /\bimportantly\b/gi,
-    /\bsignificantly\b/gi,
-    /\bcertainly\b/gi,
-    /\bundoubtedly\b/gi,
-    /\bwithout\s+a\s+doubt\b/gi,
+    /\binteressanterweise\b/gi,
+    /(?<![\wäöü])überraschenderweise\b/gi,
+    /\bbemerkenswerterweise\b/gi,
+    /\bzweifellos\b/gi,
+    /\bohne\s+zweifel\b/gi,
+    /\bes\s+sei\s+darauf\s+hingewiesen\b/gi,
+    /\bwichtig\s+ist\b/gi,
   ];
 
   // ═══ Helpers ═══════════════════════════════════════════════════════
 
+  // Tokenizer: `\w` allein erfasst im Deutschen die Umlaute aeoeue nicht
+  // (kein Unicode-Flag), darum sind aeoeue explizit in die Zeichenklasse
+  // aufgenommen. Ohne diese Ergaenzung wuerden Tokens wie „muehelos" (mit
+  // echtem Umlaut) zerfallen und die Tier-Lookups nie matchen. Eszett kommt
+  // in Schweizer Schreibweise nicht vor und muss nicht abgedeckt werden.
   function tokenize(text) {
-    return text.toLowerCase().match(/[\w'-]+/g) || [];
+    return text.toLowerCase().match(/[\wäöü'-]+/g) || [];
   }
 
   function countWords(text) {
@@ -653,20 +615,22 @@ const AIDetector = (() => {
 
   function analyzeText(text, options = {}) {
     if (!text || text.trim().length === 0) {
-      return { ...buildV2Defaults('UNSCORED', 'low'), score: 0, label: 'Empty', issues: [], stats: {}, tooShort: true };
+      return { ...buildV2Defaults('UNSCORED', 'low'), score: 0, label: 'Leer', issues: [], stats: {}, tooShort: true };
     }
 
-    // Context mode gates rules that are noisy in technical writing. Modes:
-    //   'general' (default) — full ruleset
-    //   'technical' — skip title-case headers, formulaic openers gated to
-    //                 prose-only structures; lower em-dash + formatting weights
-    //   'marketing' — full ruleset + boost on formulaic-opener / future-narrative
-    //   'personal'  — full ruleset, normal weights
-    // Mode is purely a soft gate; nothing is silently suppressed without
-    // being reflected in stats.contextMode for transparency.
-    // Mode validation: an unknown string (e.g. typo "tecnical") would
-    // otherwise silently downgrade to general-mode behavior. Coerce to
-    // 'general' and surface the original value in stats for traceability.
+    // contextMode steuert Regeln, die in technischer Prosa rauschen. Modi
+    // (Maschinen-Tokens stabil):
+    //   'general' (Default) — voller Regelsatz
+    //   'technical' — voller Regelsatz; in der deutschen Portierung gibt es
+    //                 keine Title-Case-Sonderbehandlung mehr (Substantiv-
+    //                 Grossschreibung macht „Title Case" im Deutschen zu
+    //                 keinem Tell). Der Modus bleibt als API-Token erhalten.
+    //   'marketing' / 'personal' — voller Regelsatz.
+    // Der Modus ist ein reines Soft-Gate; nichts wird still unterdrueckt,
+    // ohne in stats.contextMode sichtbar zu sein.
+    // Validierung: ein unbekannter String (z. B. Tippfehler „tecnical") wuerde
+    // sonst still auf General-Verhalten zurueckfallen. Auf 'general' zwingen
+    // und den Originalwert fuer die Nachvollziehbarkeit in stats ausweisen.
     const VALID_CONTEXT_MODES = new Set(['general', 'technical', 'marketing', 'personal']);
     const requestedMode = options.contextMode || 'general';
     const contextMode = VALID_CONTEXT_MODES.has(requestedMode) ? requestedMode : 'general';
@@ -697,13 +661,13 @@ const AIDetector = (() => {
 
     const wordCount = countWords(text);
     if (wordCount < 10) {
-      return { ...buildV2Defaults('UNSCORED', 'low'), score: 0, label: 'Too short', issues: [], stats: { wordCount, contextMode, contextModeFallback }, tooShort: true };
+      return { ...buildV2Defaults('UNSCORED', 'low'), score: 0, label: 'Zu kurz', issues: [], stats: { wordCount, contextMode, contextModeFallback }, tooShort: true };
     }
     if (wordCount > MAX_WORDS) {
       return {
         ...buildV2Defaults('UNSCORED', 'low'),
         score: 0,
-        label: 'Text too long',
+        label: 'Text zu lang',
         issues: [],
         stats: { wordCount, contextMode, contextModeFallback },
         tooLong: true,
@@ -790,7 +754,7 @@ const AIDetector = (() => {
           type: 'tier3',
           text: `"${word}" x${count}`,
           severity: 'low',
-          suggestion: `Overused (${count} times in ${wordCount} words)`,
+          suggestion: `Überstrapaziert (${count} Mal in ${wordCount} Wörtern)`,
         });
       }
     }
@@ -824,19 +788,11 @@ const AIDetector = (() => {
     issues.push(...matchPatterns(text, FORMULAIC_OPENERS, 'formulaic-opener', 'high'));
     issues.push(...matchPatterns(text, PARENTHETICAL_HEDGE, 'parenthetical-hedge', 'medium'));
 
-    // Title-case headers — gated to marketing/personal/general modes
-    // (technical mode legitimately uses Title Case section headers).
-    if (contextMode !== 'technical') {
-      const titleHits = matchPatterns(text, [TITLE_CASE_HEADER], 'title-case-header', 'medium');
-      // Drop matches that look like proper-noun titles (single line, all
-      // tokens capitalized incl. function words) — that's headline style,
-      // not the AI-section-header tell which has mid-sentence "And".
-      const filtered = titleHits.filter((h) => {
-        const tokens = h.text.split(/\s+/);
-        return tokens.length >= 4 && /\b(?:And|Or|Of|The|In|For|To|A|An)\b/.test(h.text);
-      });
-      issues.push(...filtered);
-    }
+    // Nominalstil / Funktionsverbgefuege (deutsche Zusatzregel; ersetzt die
+    // im Deutschen entfallene Title-Case-Regel). Sprach-unabhaengig vom
+    // contextMode, weil Funktionsverbgefuege auch in technischer Prosa ein
+    // Aufblaeh-Tell sind.
+    issues.push(...matchPatterns(text, NOMINALSTIL, 'nominalstil', 'medium'));
 
     // ── Normalization-trigger flag ───────────────────────────────────
     // ZWSPs or homoglyphs in pasted prose are near-dispositive: humans
@@ -846,41 +802,46 @@ const AIDetector = (() => {
     if (norm.flags.zeroWidth > 0 || norm.flags.homoglyph >= 2) {
       issues.push({
         type: 'normalization-flag',
-        text: `${norm.flags.zeroWidth} zero-width + ${norm.flags.homoglyph} homoglyph swap${norm.flags.homoglyph === 1 ? '' : 's'}`,
+        text: `${norm.flags.zeroWidth} unsichtbare + ${norm.flags.homoglyph} Homoglyphen-Ersetzung${norm.flags.homoglyph === 1 ? '' : 'en'}`,
         severity: 'critical',
-        suggestion: 'Text contains invisible/lookalike chars typical of AI-humanizer bypass tools. Re-type from your own keyboard.',
+        suggestion: 'Text enthält unsichtbare oder verwechselbare Zeichen, wie sie KI-Humanizer-Werkzeuge zur Umgehung einsetzen. Neu von der eigenen Tastatur tippen.',
       });
     }
     if (norm.flags.roleplay >= 2) {
       issues.push({
         type: 'normalization-flag',
-        text: `${norm.flags.roleplay} *roleplay-action* markers stripped`,
+        text: `${norm.flags.roleplay} *Rollenspiel-Aktions*-Marker entfernt`,
         severity: 'high',
-        suggestion: 'Paired *action* markers are a chat-model artifact.',
+        suggestion: 'Eingeklammerte *Aktions*-Marker sind ein Chatmodell-Artefakt.',
       });
     }
 
-    // ── Smart-punctuation co-occurrence signature ────────────────────
-    // Curly quotes + em-dash + Oxford comma all present + zero typos
-    // (no double-spaces, no missing apostrophes in common contractions)
-    // is a near-dispositive paste-from-LLM signature: humans typing
-    // directly into a textarea don't produce all four. Standalone any of
-    // these is meaningless — co-occurrence is the signal.
+    // ── Zeichensetzungs-Signatur (Co-Vorkommen) ──────────────────────
+    // Deutsch-Redesign: Der englische Geviertstrich „—" (U+2014) ist im
+    // Deutschen untypisch und das eigentliche Paste-aus-LLM-Signal. Das
+    // Oxford-Komma faellt weg (kein deutsches Konstrukt). Die deutschen
+    // Anfuehrungszeichen «  » und „ " sind lokal-korrekt (Carve-out) und
+    // gelten NICHT als Signal — als „Schreib-Anfuehrungszeichen" zaehlen
+    // hier nur die geraden/englischen Schreibquotes “ ” ‘ ’.
+    // Drei Signale: Geviertstrich + Schreib-Anfuehrungszeichen +
+    // fehlerfreies Tippen (keine fehlenden Apostrophe in deutschen
+    // Elisionen wie „gibts/gehts"). Einzeln bedeutungslos; das Co-Vorkommen
+    // mit dem Geviertstrich ist das Signal.
     {
-      const hasCurly = /[“”‘’]/.test(text);
-      const hasEmDash = /—/.test(text);
-      const oxfordHit = text.match(/\b\w+,\s+\w+,\s+and\s+\w+/g);
-      const hasOxford = (oxfordHit?.length || 0) >= 1;
+      const hasCurly = /[“”‘’]/.test(text);    // gerade Schreibquotes, NICHT die lokalen „ " « »
+      const hasEmDash = /—/.test(text);        // englischer Geviertstrich U+2014
       const doubleSpaces = (text.match(/[^.!?]  +/g) || []).length;
-      const missingApos = /\b(?:dont|wont|cant|isnt|wasnt|shouldnt|wouldnt|couldnt|youre|theyre|its\s+a\s+\w+ing)\b/i.test(text);
+      // Fehlende Apostrophe in haeufigen deutschen Elisionen als
+      // „Mensch-Tippfehler"-Signal (Negativsignal fuer „clean").
+      const missingApos = /(?<![\wäöü])(?:gibts|gehts|wars|machts|kommts|habs|aufs|ins|ginge?s|stehts)(?![\wäöü])/i.test(text);
       const clean = doubleSpaces === 0 && !missingApos;
-      const signals = [hasCurly, hasEmDash, hasOxford, clean].filter(Boolean).length;
-      if (signals >= 4 && wordCount >= 80) {
+      const signals = [hasCurly, hasEmDash, clean].filter(Boolean).length;
+      if (hasEmDash && signals >= 3 && wordCount >= 80) {
         issues.push({
           type: 'smart-punct-signature',
-          text: 'curly-quotes + em-dash + Oxford comma + zero typos',
+          text: 'Geviertstrich + Schreib-Anführungszeichen + fehlerfreies Tippen',
           severity: 'high',
-          suggestion: 'Smart-punctuation signature consistent with LLM output. Humans typing into textareas rarely produce all four.',
+          suggestion: 'Signatur passt zu aus einem LLM kopiertem Text; der englische Geviertstrich — ist im Deutschen untypisch (korrekt waere der Halbgeviertstrich – mit Leerzeichen).',
         });
       }
     }
@@ -902,15 +863,17 @@ const AIDetector = (() => {
         const mean = densities.reduce((a, b) => a + b, 0) / densities.length;
         const variance = densities.reduce((s, d) => s + (d - mean) ** 2, 0) / densities.length;
         const cv = mean > 0 ? Math.sqrt(variance) / mean : 0;
-        // CV < 0.25 across paragraphs means each paragraph has the same
-        // punctuation density — the AI signature. Humans usually swing
-        // wider. Threshold derived from stylometry papers (arxiv 2507.00838).
+        // CV < 0.25 ueber die Absaetze heisst: jeder Absatz hat dieselbe
+        // Zeichensetzungsdichte — die KI-Signatur. Menschen schwanken
+        // staerker. Schwelle aus Stylometrie-Papers (arxiv 2507.00838),
+        // englisch kalibriert — als Heuristik mit Kalibrierungs-Vorbehalt
+        // uebernommen, konservativ gehalten (FN-Bias; siehe Spec §5.1).
         if (cv < 0.25 && mean >= 0.04) {
           issues.push({
             type: 'punct-distribution',
-            text: `Punctuation density uniform across paragraphs (CV=${cv.toFixed(2)})`,
+            text: `Zeichensetzungsdichte über die Absätze gleichförmig (CV=${cv.toFixed(2)})`,
             severity: 'medium',
-            suggestion: 'AI text holds punctuation density steady; human writers swing between dense and sparse paragraphs.',
+            suggestion: 'KI-Text hält die Zeichensetzungsdichte konstant; menschliche Autoren wechseln zwischen dichten und sparsamen Absätzen.',
           });
         }
       }
@@ -925,14 +888,22 @@ const AIDetector = (() => {
     // Method: extract function-word indicators per sentence, build
     // trigrams over the sequence, compute Shannon entropy. Bins below
     // threshold flag.
+    // Schwellen-Vorbehalt (englisch kalibriert): Die Entropie-Schwelle 0.82
+    // (wie TTR 0.4 und die CV-Schwellen 0.25/0.08) stammt aus englischen
+    // Korpora. Deutsche Flexion und Komposita verschieben die Verteilung
+    // (Flexion senkt die TTR, Komposita erhoehen die Type-Zahl). Ohne
+    // deutschen Referenzkorpus wird die Schwelle als dokumentierte Heuristik
+    // mit Kalibrierungs-Vorbehalt uebernommen und bewusst konservativ
+    // gehalten (FN-Bias). Siehe Spec §5.1.
     if (wordCount >= 150) {
       const FUNC_WORDS = new Set([
-        'the','a','an','and','or','but','of','to','in','on','at','by','for','with',
-        'from','as','is','was','are','were','be','been','being','have','has','had',
-        'do','does','did','will','would','should','could','may','might','must','can',
-        'this','that','these','those','it','its','they','them','their','there','here',
-        'we','our','us','i','you','your','he','she','his','her','him','not','no','so',
-        'if','then','than','when','where','which','who','what','how','why','because',
+        'der','die','das','den','dem','des','ein','eine','einen','einem','einer','eines',
+        'und','oder','aber','doch','sondern','denn','sowie','sowohl',
+        'in','im','an','am','auf','aus','bei','mit','nach','seit','von','vom','vor','zu','zur','zum','über','unter','durch','für','gegen','ohne','um','bis',
+        'ist','sind','war','waren','sein','bin','bist','wird','werden','wurde','worden','hat','haben','hatte','kann','könnte','muss','soll','will','wäre',
+        'ich','du','er','sie','es','wir','ihr','man','sich','mich','dich','ihm','ihn',
+        'nicht','kein','keine','auch','noch','schon','nur','so','wenn','dann','als','wie','dass','weil','damit','ob','wo','was','wer','welche','welcher',
+        'dieser','diese','dieses','hier','dort','da','sehr','mehr',
       ]);
       const seq = tokens.map((t) => FUNC_WORDS.has(t) ? t : '_').filter((_, i, arr) => arr[i] !== '_' || (i > 0 && arr[i - 1] !== '_'));
       if (seq.length >= 50) {
@@ -955,9 +926,9 @@ const AIDetector = (() => {
         if (normalized < 0.82 && total >= 50) {
           issues.push({
             type: 'fnword-trigram-entropy',
-            text: `Function-word trigram entropy ${normalized.toFixed(2)} (low)`,
+            text: `Funktionswort-Trigramm-Entropie ${normalized.toFixed(2)} (niedrig)`,
             severity: 'medium',
-            suggestion: 'Grammatical structure is unusually repetitive. AI sampling collapses onto narrower templates than human writing.',
+            suggestion: 'Die grammatische Struktur ist ungewöhnlich repetitiv. KI-Sampling fällt auf engere Schablonen zurück als menschliches Schreiben.',
           });
         }
         // Degenerate case: single distinct trigram repeated across the
@@ -967,9 +938,9 @@ const AIDetector = (() => {
         if (distinctCount === 1 && total >= 50) {
           issues.push({
             type: 'fnword-trigram-entropy',
-            text: 'Single function-word trigram repeated across document',
+            text: 'Ein einziges Funktionswort-Trigramm im ganzen Dokument wiederholt',
             severity: 'high',
-            suggestion: 'Grammatical structure is fully degenerate — every clause uses the same function-word skeleton.',
+            suggestion: 'Die grammatische Struktur ist vollständig degeneriert — jeder Teilsatz nutzt dasselbe Funktionswort-Gerüst.',
           });
         }
       }
@@ -994,15 +965,16 @@ const AIDetector = (() => {
         const cvMean = cvs.reduce((a, b) => a + b, 0) / cvs.length;
         const cvVar = cvs.reduce((s, c) => s + (c - cvMean) ** 2, 0) / cvs.length;
         const cvStd = Math.sqrt(cvVar);
-        // Std-of-CV below 0.08 means every paragraph has roughly the same
-        // internal rhythm — AI signature. Human prose typically swings
-        // 0.15-0.40 across paragraphs of mixed purpose.
+        // Std-der-CV unter 0.08 heisst: jeder Absatz hat etwa denselben
+        // inneren Rhythmus — KI-Signatur. Menschliche Prosa schwankt ueber
+        // Absaetze gemischten Zwecks typisch 0.15-0.40. Schwelle englisch
+        // kalibriert, als Heuristik mit Vorbehalt uebernommen (Spec §5.1).
         if (cvStd < 0.08 && cvMean < 0.45) {
           issues.push({
             type: 'cross-para-burstiness',
-            text: `Sentence-rhythm uniform across paragraphs (σCV=${cvStd.toFixed(2)})`,
+            text: `Satzrhythmus über die Absätze gleichförmig (σCV=${cvStd.toFixed(2)})`,
             severity: 'medium',
-            suggestion: 'Every paragraph has the same internal rhythm. Humans vary cadence between terse and discursive paragraphs.',
+            suggestion: 'Jeder Absatz hat denselben inneren Rhythmus. Menschen wechseln die Kadenz zwischen knappen und ausführlichen Absätzen.',
           });
         }
       }
@@ -1048,16 +1020,16 @@ const AIDetector = (() => {
           type: 'tier3-phrase',
           text: `"${phraseSpans[0][2].toLowerCase()}" x${phraseSpans.length}`,
           severity: 'medium',
-          suggestion: `Boilerplate phrase repeated ${phraseSpans.length}× — replace at least one with specifics`,
+          suggestion: `Floskel ${phraseSpans.length}× wiederholt — mindestens eine durch Konkretes ersetzen`,
         });
       }
     }
     if (distinctPhrasesHit >= 3) {
       issues.push({
         type: 'tier3-phrase-cluster',
-        text: `${distinctPhrasesHit} distinct boilerplate phrases`,
+        text: `${distinctPhrasesHit} verschiedene Boilerplate-Floskeln`,
         severity: 'high',
-        suggestion: 'Several stock crypto/web3 phrases stacked in one piece. Rewrite around one specific claim or observation.',
+        suggestion: 'Mehrere Standard-Floskeln in einem Text gestapelt. Um eine konkrete Aussage oder Beobachtung herum neu schreiben.',
       });
     }
 
@@ -1077,9 +1049,9 @@ const AIDetector = (() => {
     if (hashtagMatches.length >= 6) {
       issues.push({
         type: 'hashtag-stuff',
-        text: `${hashtagMatches.length} hashtags`,
+        text: `${hashtagMatches.length} Hashtags`,
         severity: 'medium',
-        suggestion: 'Cut to 2-3 specific tags or none. Long hashtag blocks read as bot output.',
+        suggestion: 'Auf 2-3 konkrete Tags kürzen oder ganz weglassen. Lange Hashtag-Blöcke wirken wie Bot-Ausgabe.',
       });
     }
 
@@ -1091,17 +1063,16 @@ const AIDetector = (() => {
     // unicode bullets, and dashes are all matched. Numbered lists are
     // excluded — those have a separate "numbered list inflation" rule.
     //
-    // Note: verbRe covers auxiliaries and modals ("was", "will", "can",
-    // etc.). Regular past-tense verbs ("fixed", "removed") are not
-    // matched here; instead, the ≤6-word length gate excludes most
-    // real-world changelog lines, which tend to read "fixed the X that
-    // was doing Y" (>6 words). Short two-word action items ("* fixed
-    // bug") would pass both gates — an acceptable trade-off to avoid
-    // false-negative risk from adjectives ending in -ed ("skilled",
-    // "advanced") that share the same surface form.
+    // Hinweis: verbRe deckt deutsche Hilfs- und Modalverben ab (ist/sind/
+    // war/hat/haben/wird/werden/kann/muss/…) sowie die haeufigsten flektierten
+    // Vollverb-Formen aus Changelog-/Todo-Listen (behebt/entfernt/ergaenzt/
+    // korrigiert/aktualisiert/fuegt/loest). So bleiben echte Stichwortlisten
+    // mit Verben (Changelogs) draussen, waehrend die LLM-typische Liste aus
+    // reinen Adjektiv+Nomen-Paaren (kein finites Verb) geflaggt wird. Die
+    // <= 6-Wort-Schranke filtert laengere Prosa-Bullets zusaetzlich.
     const lines = text.split(/\r?\n/);
     const bulletRe = /^\s*(?:\*|-|•|\+)\s+(.+)$/;
-    const verbRe = /\b(?:is|are|was|were|has|have|had|will|would|should|must|do|does|did|can|could|may|might|am|been|being)\b/i;
+    const verbRe = /(?<![\wäöü])(?:ist|sind|war|waren|wird|werden|wurde|wurden|hat|haben|hatte|hatten|kann|können|muss|müssen|soll|sollen|darf|wäre|sei|gibt|läuft|behebt|entfernt|ergänzt|korrigiert|aktualisiert|fügt|löst|bringt|macht|baut|schafft)(?![\wäöü])/i;
     const fenceRe = /^\s*(?:```|~~~)/;
     let run = [];
     let blankStreak = 0;
@@ -1115,9 +1086,9 @@ const AIDetector = (() => {
         if (bareNP.length >= 5 && bareNP.length / run.length >= 0.75) {
           issues.push({
             type: 'bullet-np-list',
-            text: `${run.length}-item bullet list of bare noun phrases`,
+            text: `Aufzählung mit ${run.length} reinen Nominalphrasen`,
             severity: 'high',
-            suggestion: 'Convert to a prose paragraph or merge items. Long lists of bare adj+noun pairs read as AI scaffolding.',
+            suggestion: 'In einen Prosa-Absatz umwandeln oder Punkte zusammenfassen. Lange Listen aus reinen Adjektiv+Nomen-Paaren wirken wie KI-Geruest.',
           });
         }
       }
@@ -1156,17 +1127,21 @@ const AIDetector = (() => {
     const confIssues = matchPatterns(text, CONFIDENCE_CALIBRATION, 'confidence-calibration', 'low');
     if (confIssues.length >= 3) issues.push(...confIssues);
 
-    // ── 22. Em dash frequency ────────────────────────────────────
-    // Match real em dashes, plus `--` only when surrounded by whitespace on at
-    // least one side (skips CLI flags like --save-dev and YAML `---` blocks).
+    // ── 22. Geviertstrich-Haeufigkeit (Deutsch-Redesign) ─────────
+    // Im Deutschen ist der Halbgeviertstrich „–" (U+2013, mit Leerzeichen)
+    // der korrekte Gedankenstrich und wird NICHT gezaehlt. Das Tell ist der
+    // englische Geviertstrich „—" (U+2014), den LLMs aus englischen
+    // Trainingsdaten einstreuen. `--` wird wie bisher nur dann gewertet,
+    // wenn es von Leerzeichen umgeben ist (ueberspringt CLI-Flags wie
+    // --save-dev und YAML-`---`-Bloecke).
     const emDashCount = (text.match(/—|(?<=\s)--(?=\s|$)|(?<=^|\s)--(?=\s)/gm) || []).length;
     const emDashRate = emDashCount / (wordCount / 1000);
     if (emDashRate > 1) {
       issues.push({
         type: 'em-dash',
-        text: `${emDashCount} em dashes in ${wordCount} words`,
+        text: `${emDashCount} Geviertstriche (—) in ${wordCount} Wörtern`,
         severity: 'medium',
-        suggestion: 'Replace with commas, periods, or rewrite',
+        suggestion: 'Im Deutschen den Halbgeviertstrich – mit Leerzeichen, ein Komma oder einen Punkt verwenden. Der Geviertstrich — ist untypisch.',
       });
     }
 
@@ -1181,40 +1156,35 @@ const AIDetector = (() => {
       if (cv < 0.25 && avg > 10) {
         issues.push({
           type: 'uniformity',
-          text: `Sentence lengths cluster around ${Math.round(avg)} words (low variation)`,
+          text: `Satzlängen liegen alle um ${Math.round(avg)} Wörter (wenig Variation)`,
           severity: 'medium',
-          suggestion: 'Mix short punchy sentences with longer flowing ones',
+          suggestion: 'Kurze, prägnante Sätze mit längeren, fliessenden mischen',
         });
       }
     }
 
-    // ── Type-token ratio (stylometric — vocabulary diversity) ────
-    // TTR = distinct word types / total tokens. Human prose at 200+
-    // words typically sits around 0.50–0.65 for English; AI prose
-    // tends flatter (0.55–0.75 looks normal, but the lower end of the
-    // *too-flat* tail at >=200 words is where the signal lives — too
-    // FEW unique words for the length). This is the simplest of the
-    // four stylometric signals identified in the May 2026 detection-
-    // research review (docs/competitive/detection-research.md): no
-    // POS tagger required, no model, pure JS.
+    // ── Type-Token-Ratio (stylometrisch — Vokabularvielfalt) ────
+    // TTR = verschiedene Worttypen / alle Tokens. Schwelle 0.4 ist auf
+    // ENGLISCHEN Korpora kalibriert (engl. Prosa ~0.50-0.65 bei 200+
+    // Woertern). Deutsch verschiebt das: Flexion senkt die TTR, Komposita
+    // erhoehen die Type-Zahl. Ohne deutschen Referenzkorpus wird die
+    // Schwelle als dokumentierte Heuristik mit Kalibrierungs-Vorbehalt
+    // uebernommen und bewusst konservativ gehalten (FN-Bias; Spec §5.1) —
+    // kein POS-Tagger, kein Modell, reines JS.
     //
-    // Threshold tuning: flag only when the sample is large enough
-    // that low TTR is meaningfully suspicious (>=200 tokens) AND TTR
-    // is below 0.40 (very vocabulary-poor). Conservative on purpose;
-    // false positives on short or topic-narrow human prose are easy
-    // to trigger and would drown out other signals. The detector-
-    // research lens flagged TTR as one of four stylometric add-ons;
-    // POS-bigram log-odds, function-word z-scores, and sentence-
-    // length burstiness are still TODO.
+    // Flaggen nur, wenn die Stichprobe gross genug ist, dass niedrige TTR
+    // wirklich verdaechtig ist (>= 200 Tokens) UND die TTR unter 0.40 liegt
+    // (sehr wortarm). Fehlalarme auf kurzer oder themenenger Menschenprosa
+    // sind sonst leicht ausgeloest und wuerden andere Signale uebertoenen.
     if (tokens.length >= 200) {
       const unique = new Set(tokens).size;
       const ttr = unique / tokens.length;
       if (ttr < 0.4) {
         issues.push({
           type: 'low-ttr',
-          text: `Vocabulary diversity ${(ttr * 100).toFixed(1)}% (${unique} unique / ${tokens.length} tokens)`,
+          text: `Vokabularvielfalt ${(ttr * 100).toFixed(1)}% (${unique} verschiedene / ${tokens.length} Tokens)`,
           severity: 'low',
-          suggestion: 'Text reuses a narrow word set. Vary nouns and verbs deliberately, or check if the topic genuinely warrants the repetition.',
+          suggestion: 'Der Text nutzt einen engen Wortschatz wieder. Nomen und Verben bewusst variieren, oder prüfen, ob das Thema die Wiederholung wirklich rechtfertigt.',
         });
       }
     }
@@ -1227,21 +1197,21 @@ const AIDetector = (() => {
       if (allSimilar && avg >= 3) {
         issues.push({
           type: 'uniformity',
-          text: `All paragraphs are ~${Math.round(avg)} sentences`,
+          text: `Alle Absätze umfassen ~${Math.round(avg)} Sätze`,
           severity: 'low',
-          suggestion: 'Vary paragraph length deliberately',
+          suggestion: 'Absatzlänge bewusst variieren',
         });
       }
     }
 
-    // ── 25. Bold overuse ─────────────────────────────────────────
+    // ── 25. Fettschrift-Übermass ─────────────────────────────────
     const boldMatches = text.match(/\*\*[^*]+\*\*/g) || [];
     if (boldMatches.length > 3) {
       issues.push({
         type: 'formatting',
-        text: `${boldMatches.length} bold phrases`,
+        text: `${boldMatches.length} fett gesetzte Passagen`,
         severity: 'medium',
-        suggestion: 'Strip bold from most; restructure to lead with key info',
+        suggestion: 'Bei den meisten die Fettschrift entfernen; so umbauen, dass die Kernaussage zuerst kommt',
       });
     }
 
@@ -1527,13 +1497,14 @@ const AIDetector = (() => {
     return { classification, probabilities, confidence };
   }
 
+  // Feste deutsche Score-Labels (verbindlich, ueberall identisch verwendet).
   function getLabel(score) {
-    if (score === 0) return 'Clean';
-    if (score <= 15) return 'Minimal AI signals';
-    if (score <= 35) return 'Some AI patterns';
-    if (score <= 60) return 'Moderate AI signals';
-    if (score <= 80) return 'Strong AI signals';
-    return 'Heavy AI patterns';
+    if (score === 0) return 'Sauber';
+    if (score <= 15) return 'Minimale KI-Signale';
+    if (score <= 35) return 'Einige KI-Muster';
+    if (score <= 60) return 'Moderate KI-Signale';
+    if (score <= 80) return 'Starke KI-Signale';
+    return 'Viele KI-Muster';
   }
 
   function getColor(score) {
@@ -1563,49 +1534,49 @@ const AIDetector = (() => {
   };
 
   const TYPE_LABELS = {
-    'tier1': 'AI vocabulary',
-    'tier2': 'Word cluster',
-    'tier3': 'Overused word',
-    'transition': 'AI transition',
-    'chatbot': 'Chatbot artifact',
-    'sycophantic': 'Sycophantic tone',
-    'filler': 'Filler phrase',
-    'generic-conclusion': 'Generic conclusion',
-    'lets-construction': '"Let\'s" opener',
-    'reasoning-artifact': 'Reasoning artifact',
-    'acknowledgment-loop': 'Acknowledgment loop',
-    'significance-inflation': 'Significance inflation',
-    'vague-attribution': 'Vague attribution',
-    'hollow-intensifier': 'Hollow intensifier',
-    'emotional-flatline': 'Emotional flatline',
-    'novelty-inflation': 'Novelty inflation',
-    'cutoff-disclaimer': 'Cutoff disclaimer',
-    'template-phrase': 'Template phrase',
-    'false-concession': 'False concession',
-    'rhetorical-question': 'Rhetorical question',
-    'confidence-calibration': 'Confidence stacking',
-    'em-dash': 'Em dash overuse',
-    'uniformity': 'Rhythm uniformity',
-    'formatting': 'Formatting',
-    'tier3-phrase': 'Boilerplate phrase',
-    'tier3-phrase-cluster': 'Boilerplate cluster',
-    'hashtag-stuff': 'Hashtag stuffing',
-    'bullet-np-list': 'Bullet-NP list',
-    'hedge-stack': 'Hedge-stacked prediction',
-    'future-narrative': 'Generic future narrative',
-    'real-actual-inflation': '"Real/actual" inflation',
-    'formulaic-opener': 'Formulaic opener',
-    'title-case-header': 'Title Case header',
-    'parenthetical-hedge': 'Parenthetical hedge',
-    'smart-punct-signature': 'Smart-punct signature',
-    'punct-distribution': 'Punctuation distribution',
-    'fnword-trigram-entropy': 'Grammar repetition',
-    'cross-para-burstiness': 'Cross-paragraph rhythm',
-    'normalization-flag': 'Bypass-trick chars',
-    'low-ttr': 'Low vocabulary diversity',
-    'ai-placeholder': 'Unfilled placeholder',
-    'ai-citation-markup': 'Chatbot citation markup leak',
-    'ai-utm-source': 'AI-tool URL parameter',
+    'tier1': 'KI-Vokabular',
+    'tier2': 'Wort-Cluster',
+    'tier3': 'Überstrapaziertes Wort',
+    'transition': 'KI-Übergang',
+    'chatbot': 'Chatbot-Artefakt',
+    'sycophantic': 'Schmeichelhafter Ton',
+    'filler': 'Füll-Floskel',
+    'generic-conclusion': 'Generischer Schluss',
+    'lets-construction': '„Lassen Sie uns"-Eröffnung',
+    'reasoning-artifact': 'Reasoning-Artefakt',
+    'acknowledgment-loop': 'Quittungs-Schleife',
+    'significance-inflation': 'Bedeutungs-Inflation',
+    'vague-attribution': 'Vage Attribution',
+    'hollow-intensifier': 'Hohler Verstärker',
+    'emotional-flatline': 'Emotionale Flachheit',
+    'novelty-inflation': 'Neuheits-Inflation',
+    'cutoff-disclaimer': 'Cutoff-Disclaimer',
+    'template-phrase': 'Template-Phrase',
+    'false-concession': 'Schein-Zugeständnis',
+    'rhetorical-question': 'Rhetorische Frage',
+    'confidence-calibration': 'Gewissheits-Stapelung',
+    'em-dash': 'Geviertstrich-Übermass',
+    'uniformity': 'Rhythmus-Gleichförmigkeit',
+    'formatting': 'Formatierung',
+    'tier3-phrase': 'Boilerplate-Floskel',
+    'tier3-phrase-cluster': 'Boilerplate-Cluster',
+    'hashtag-stuff': 'Hashtag-Überladung',
+    'bullet-np-list': 'Nominalphrasen-Aufzählung',
+    'hedge-stack': 'Hedge-gestapelte Aussage',
+    'future-narrative': 'Generisches Zukunfts-Narrativ',
+    'real-actual-inflation': '„Echt/tatsächlich"-Inflation',
+    'formulaic-opener': 'Formelhafte Eröffnung',
+    'nominalstil': 'Nominalstil',
+    'parenthetical-hedge': 'Parenthetischer Hedge',
+    'smart-punct-signature': 'Zeichensetzungs-Signatur',
+    'punct-distribution': 'Zeichensetzungs-Verteilung',
+    'fnword-trigram-entropy': 'Grammatik-Wiederholung',
+    'cross-para-burstiness': 'Rhythmus über Absätze',
+    'normalization-flag': 'Umgehungs-Zeichen',
+    'low-ttr': 'Geringe Vokabularvielfalt',
+    'ai-placeholder': 'Nicht ausgefüllter Platzhalter',
+    'ai-citation-markup': 'Durchgesickertes Chatbot-Zitat-Markup',
+    'ai-utm-source': 'KI-Werkzeug-URL-Parameter',
   };
 
   return {
