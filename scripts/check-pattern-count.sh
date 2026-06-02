@@ -1,41 +1,43 @@
 #!/usr/bin/env bash
-# Guard against pattern-count drift. The count is a derived fact, so it lives in
-# exactly one user-facing place — the README "**NN pattern categories**" bullet —
-# and this script asserts it matches SKILL.md's detection catalog. Run in CI so
-# adding a pattern without bumping the README is a red check, not silent rot.
+# Schutz gegen Drift der Muster-Anzahl. Die Zahl ist ein abgeleiteter Fakt und
+# steht an genau einer nutzerseitigen Stelle - im README-Bullet
+# "**NN Muster-Kategorien**" - und dieses Skript prueft, dass sie zum
+# Erkennungskatalog von SKILL.md passt. Laeuft in der CI, damit ein neues Muster
+# ohne README-Update ein roter Check ist und nicht stiller Zerfall.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 skill="$repo_root/SKILL.md"
 readme="$repo_root/README.md"
 
-# Detection categories = the `###` entries under "## What to remove or fix",
-# minus the writer-side tests (judgment checks with no detectable form):
-# paragraph-reshuffle immunity, treadmill effect, and rewrite-vs-patch.
+# Erkennungs-Kategorien = die `###`-Eintraege unter
+# "## Was zu entfernen oder zu korrigieren ist", abzueglich der schreiberseitigen
+# Tests (Beurteilungs-Checks ohne erkennbare Form): Absatz-Umstell-Immunitaet,
+# Tretmuehlen-Effekt und Neuschreiben-statt-Flicken.
 detection_count="$(awk '
-  /^## What to remove or fix/ { inside = 1; next }
+  /^## Was zu entfernen oder zu korrigieren ist/ { inside = 1; next }
   /^## / { inside = 0 }
   inside && /^### / {
-    if ($0 ~ /\(structure test\)/) next
-    if ($0 ~ /\(content test\)/) next
-    if ($0 ~ /^### When to rewrite from scratch/) next
+    if ($0 ~ /\(Struktur-Test\)/) next
+    if ($0 ~ /\(Inhalts-Test\)/) next
+    if ($0 ~ /^### Wann komplett neu schreiben/) next
     n++
   }
   END { print n + 0 }
 ' "$skill")"
 
-# The single user-facing count literal.
-readme_count="$(sed -n 's/.*\*\*\([0-9][0-9]*\) pattern categories\*\*.*/\1/p' "$readme" | head -n1)"
+# Das einzige nutzerseitige Zahl-Literal.
+readme_count="$(sed -n 's/.*\*\*\([0-9][0-9]*\) Muster-Kategorien\*\*.*/\1/p' "$readme" | head -n1)"
 
 if [ -z "$readme_count" ]; then
-  echo "could not find the '**NN pattern categories**' bullet in README.md" >&2
+  echo "Konnte das Bullet '**NN Muster-Kategorien**' in README.md nicht finden" >&2
   exit 1
 fi
 
 if [ "$detection_count" != "$readme_count" ]; then
-  echo "pattern-count drift: SKILL.md has $detection_count detection categories, README says $readme_count" >&2
-  echo "Update the '**NN pattern categories**' bullet in README.md to $detection_count (or fix SKILL.md)." >&2
+  echo "Drift der Muster-Anzahl: SKILL.md hat $detection_count Erkennungs-Kategorien, README sagt $readme_count" >&2
+  echo "Passe das Bullet '**NN Muster-Kategorien**' in README.md auf $detection_count an (oder korrigiere SKILL.md)." >&2
   exit 1
 fi
 
-echo "pattern count in sync: $detection_count"
+echo "Muster-Anzahl synchron: $detection_count"
