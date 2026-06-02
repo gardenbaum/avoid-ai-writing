@@ -1,101 +1,122 @@
-# Category map: SKILL.md ↔ detector
+# Kategorien-Map: SKILL.md ↔ Detector
 
-This table is the anti-drift contract between the human-readable rules in
-`../SKILL.md` and the executable engine in `patterns.js`. When you add a rule to
-the skill, decide here whether it's regex-detectable (give it a detector `type`)
-or LLM-only judgment (mark it so). When you add a detector `type`, point it back
-at the skill section it enforces.
+Diese Tabelle ist der Anti-Drift-Vertrag zwischen den menschenlesbaren Regeln in
+`../SKILL.md` und der ausführbaren Engine in `patterns.js`. Wenn du dem Skill eine
+Regel hinzufügst, entscheide hier, ob sie per Regex erkennbar ist (dann bekommt sie
+einen Detector-`type`) oder ob sie ein LLM-Urteil bleibt (dann markiere sie als
+solches). Wenn du einen Detector-`type` hinzufügst, verweise von hier zurück auf den
+SKILL-Abschnitt, den er durchsetzt.
 
-The engine exposes 43 issue `type`s (see `TYPE_LABELS` in `patterns.js`). The
-skill has more `###` sections than that — the gap is **not** missing coverage,
-it's rules that are judgment calls a regex can't make. The three groups below
-account for every entry on both sides.
+Die Engine stellt 43 Issue-`type`s bereit (siehe `TYPE_LABELS` in `patterns.js`). Das
+Skill hat mehr `###`-Abschnitte als das — die Lücke ist **keine** fehlende Abdeckung,
+sondern Regeln, die Ermessensentscheidungen sind, die ein Regex nicht treffen kann.
+Die drei Gruppen unten erfassen jeden Eintrag auf beiden Seiten.
 
-Three counts coexist on purpose and should not be forced to match: the README's
-**pattern-category count** (the human-facing prose catalog, derived from SKILL.md
-and guarded in CI), the engine's **43 `type`s** (which split the vocabulary tiers
-and add stylometric signals), and SKILL.md's `###` sections (which also include
-writer-side tests with no detectable form). The
-`categories.test.js` check enforces only the engine ↔ this-file mapping.
+Drei Zahlen existieren bewusst nebeneinander und sollen nicht erzwungen gleichgesetzt
+werden: die **Muster-Kategorien-Zahl** des README (der menschenseitige Prosa-Katalog,
+aus SKILL.md abgeleitet und in der CI bewacht), die **43 `type`s** der Engine (die die
+Vokabel-Tiers aufsplitten und stylometrische Signale ergänzen) und die `###`-Abschnitte
+von SKILL.md (die auch schreiberseitige Tests ohne erkennbare Form enthalten). Der
+Check in `categories.test.js` erzwingt nur das Mapping Engine ↔ diese Datei.
 
-## A. Direct mapping (skill rule → detector `type`)
+## A. Direktes Mapping (Skill-Regel → Detector-`type`)
 
-| Detector `type` | Label | SKILL.md section |
+| Detector-`type` | Label | SKILL.md-Abschnitt |
 |---|---|---|
-| `tier1` / `tier2` / `tier3` | AI vocabulary / Word cluster / Overused word | Words and phrases to replace |
-| `transition` | AI transition | Transition phrases to remove or rewrite |
-| `template-phrase` | Template phrase | Template phrases (avoid) |
-| `tier3-phrase` / `tier3-phrase-cluster` | Boilerplate phrase / cluster | Template phrases (avoid) |
-| `chatbot` | Chatbot artifact | Chatbot artifacts |
-| `sycophantic` | Sycophantic tone | Sycophantic tone |
-| `acknowledgment-loop` | Acknowledgment loop | Acknowledgment loops |
-| `filler` | Filler phrase | Filler phrases |
-| `hollow-intensifier` | Hollow intensifier | Filler phrases (intensifiers) |
-| `generic-conclusion` | Generic conclusion | Generic conclusions |
-| `future-narrative` | Generic future narrative | Generic future-narrative closers |
-| `lets-construction` | "Let's" opener | "Let's" constructions |
-| `reasoning-artifact` | Reasoning artifact | Reasoning chain artifacts |
-| `significance-inflation` | Significance inflation | Significance inflation |
-| `novelty-inflation` | Novelty inflation | Novelty inflation |
-| `real-actual-inflation` | "Real/actual" inflation | "Real/actual" adjective inflation |
-| `vague-attribution` | Vague attribution | Vague attributions |
-| `emotional-flatline` | Emotional flatline | Emotional flatline / Superficial -ing analyses |
-| `cutoff-disclaimer` | Cutoff disclaimer | Cutoff disclaimers |
-| `false-concession` | False concession | False concession structure |
-| `rhetorical-question` | Rhetorical question | Rhetorical question openers |
-| `formulaic-opener` | Formulaic opener | Formulaic challenges |
-| `confidence-calibration` | Confidence stacking | Confidence calibration phrases |
-| `hedge-stack` | Hedge-stacked prediction | Hedge-stacked predictions |
-| `parenthetical-hedge` | Parenthetical hedge | Parenthetical hedging |
-| `hashtag-stuff` | Hashtag stuffing | Hashtag stuffing |
-| `bullet-np-list` | Bullet-NP list | Bullet lists of bare noun phrases |
-| `title-case-header` | Title Case header | Title case headings |
-| `em-dash` / `formatting` | Em dash overuse / Formatting | Formatting |
-| `uniformity` | Rhythm uniformity | Rhythm and uniformity |
-| `low-ttr` | Low vocabulary diversity | Vocabulary diversity (stylometric) |
-| `ai-placeholder` | Unfilled placeholder | Unfilled placeholders |
-| `ai-citation-markup` | Chatbot citation markup leak | Chatbot citation markup leaks |
-| `ai-utm-source` | AI-tool URL parameter | AI-tool URL parameters |
-| `smart-punct-signature` | Smart-punct signature | Formatting (curly quotation marks) — *partial* |
+| `tier1` / `tier2` / `tier3` | KI-Vokabular / Wort-Cluster / Überstrapaziertes Wort | Wörter und Wendungen zum Ersetzen |
+| `transition` | KI-Übergang | Übergangsphrasen entfernen oder umschreiben |
+| `template-phrase` | Template-Phrase | Template-Phrasen (vermeiden) |
+| `tier3-phrase` / `tier3-phrase-cluster` | Boilerplate-Floskel / Boilerplate-Cluster | Template-Phrasen (vermeiden) |
+| `chatbot` | Chatbot-Artefakt | Chatbot-Artefakte |
+| `sycophantic` | Schmeichelhafter Ton | Schmeichlerischer Ton |
+| `acknowledgment-loop` | Quittungs-Schleife | Bestätigungs-Schleifen |
+| `filler` | Füll-Floskel | Füllphrasen |
+| `hollow-intensifier` | Hohler Verstärker | Füllphrasen (Verstärker) |
+| `generic-conclusion` | Generischer Schluss | Generische Schlüsse |
+| `future-narrative` | Generisches Zukunfts-Narrativ | Generische Zukunfts-Schlüsse |
+| `lets-construction` | „Lassen Sie uns"-Eröffnung | „Lass uns"-Konstruktionen |
+| `reasoning-artifact` | Reasoning-Artefakt | Reasoning-Ketten-Artefakte |
+| `significance-inflation` | Bedeutungs-Inflation | Bedeutungs-Aufblähung |
+| `novelty-inflation` | Neuheits-Inflation | Neuheits-Aufblähung |
+| `real-actual-inflation` | „Echt/tatsächlich"-Inflation | „Echt/tatsächlich"-Adjektiv-Aufblähung |
+| `vague-attribution` | Vage Attribution | Vage Quellenangaben |
+| `emotional-flatline` | Emotionale Flachheit | Emotionale Flachheit / Oberflächliche Partizip-Analysen |
+| `cutoff-disclaimer` | Cutoff-Disclaimer | Cutoff-Disclaimer |
+| `false-concession` | Schein-Zugeständnis | Falsche Zugeständnis-Struktur |
+| `rhetorical-question` | Rhetorische Frage | Rhetorische Frage-Einstiege |
+| `formulaic-opener` | Formelhafte Eröffnung | Schablonenhafte Herausforderungen |
+| `confidence-calibration` | Gewissheits-Stapelung | Sicherheits-Kalibrierungs-Phrasen |
+| `hedge-stack` | Hedge-gestapelte Aussage | Gestapelte Absicherungen in Prognosen |
+| `parenthetical-hedge` | Parenthetischer Hedge | Parenthetisches Absichern |
+| `hashtag-stuff` | Hashtag-Überladung | Hashtag-Stopfen |
+| `bullet-np-list` | Nominalphrasen-Aufzählung | Aufzählungslisten aus blossen Nominalphrasen |
+| `nominalstil` | Nominalstil | Nominalstil und Funktionsverbgefüge |
+| `em-dash` / `formatting` | Geviertstrich-Übermass / Formatierung | Formatierung |
+| `uniformity` | Rhythmus-Gleichförmigkeit | Rhythmus und Gleichförmigkeit |
+| `low-ttr` | Geringe Vokabularvielfalt | Wortschatz-Vielfalt (stylometrisch) |
+| `ai-placeholder` | Nicht ausgefüllter Platzhalter | Nicht ausgefüllte Platzhalter |
+| `ai-citation-markup` | Durchgesickertes Chatbot-Zitat-Markup | Chatbot-Zitations-Markup-Lecks |
+| `ai-utm-source` | KI-Werkzeug-URL-Parameter | KI-Tool-URL-Parameter |
+| `smart-punct-signature` | Zeichensetzungs-Signatur | Formatierung (Geviertstrich-Signatur) — *partiell* |
 
-> **Partial map:** `smart-punct-signature` fires only when curly quotes co-occur
-> with an em-dash, an Oxford comma, and clean typing (≥80 words) — never on curly
-> punctuation alone. The SKILL.md Formatting rule treats curly quotes as a weak,
-> corroborating signal in plain-text contexts and excludes apostrophes. The two
-> agree in spirit (curly punctuation is never conclusive on its own) but differ in
-> mechanism — so this is a partial map, not 1:1.
+> **Title-Case entfällt im Deutschen.** Der frühere `type` `title-case-header`
+> (Title Case headings) wurde mit der Portierung gestrichen: Deutsche Substantive
+> werden grundsätzlich grossgeschrieben, deshalb ist eine durchgehende Grossschreibung
+> von Inhaltswörtern in Überschriften kein KI-Signal, sondern reguläre Orthografie.
+> Eine Title-Case-Regel würde im Deutschen nur Fehlalarme erzeugen und hat daher
+> weder im Skill noch in der Engine eine Entsprechung.
 
-## B. Detector-only (stylometric / fingerprint — no skill prose)
+> **Partielles Mapping:** `smart-punct-signature` feuert nur, wenn der englische
+> Geviertstrich (—, U+2014) mit Schreib-Anführungszeichen und fehlerfreiem Tippen
+> (≥80 Wörter) zusammenfällt — nie auf Zeichensetzung allein. Die lokal korrekten
+> deutschen Anführungszeichen (`„ "`, `‚ '`) und die Guillemets (`« »`, `‹ ›`) sowie
+> der korrekte Halbgeviertstrich (–, U+2013, mit Leerzeichen) gelten als
+> lokal-korrekt und lösen für sich allein nichts aus. Die Formatierungs-Regel in
+> SKILL.md behandelt den Geviertstrich als das eigentliche Tell und die
+> Zeichensetzung sonst als schwaches, nur bestätigendes Signal. Beide stimmen im
+> Geist überein (Zeichensetzung ist nie für sich allein beweisend), unterscheiden
+> sich aber im Mechanismus — daher partielles Mapping, nicht 1:1.
 
-These extend the skill with signals that work as math over the whole document,
-not as a phrase a human editor would look up:
+## B. Detector-only (stylometrisch / Fingerabdruck — keine Skill-Prosa)
 
-| Detector `type` | Label | Why it's engine-only |
+Diese erweitern das Skill um Signale, die als Rechnung über das ganze Dokument
+funktionieren, nicht als Wendung, die eine redigierende Person nachschlagen würde:
+
+| Detector-`type` | Label | Warum nur in der Engine |
 |---|---|---|
-| `punct-distribution` | Punctuation distribution | Per-paragraph punctuation uniformity |
-| `fnword-trigram-entropy` | Grammar repetition | Function-word trigram entropy |
-| `cross-para-burstiness` | Cross-paragraph rhythm | Sentence-length variance across paragraphs |
-| `normalization-flag` | Bypass-trick chars | Zero-width / homoglyph humanizer-bypass detection |
+| `punct-distribution` | Zeichensetzungs-Verteilung | Gleichförmigkeit der Zeichensetzung je Absatz |
+| `fnword-trigram-entropy` | Grammatik-Wiederholung | Entropie der Funktionswort-Trigramme |
+| `cross-para-burstiness` | Rhythmus über Absätze | Varianz der Satzlänge über Absätze hinweg |
+| `normalization-flag` | Umgehungs-Zeichen | Erkennung von Zero-Width-/Homoglyph-Zeichen zur Humanizer-Umgehung |
 
-## C. Skill-only (LLM judgment — no detector `type`)
+> **Kalibrierungs-Vorbehalt:** Die stylometrischen Schwellen (TTR, Variationskoeffizient,
+> Trigramm-Entropie) sind auf englischem Text kalibriert. Deutsche Flexion und Komposita
+> verschieben die Verteilungen; die Schwellen sind daher bewusst konservativ gehalten und
+> dokumentierte Heuristik, kein hartes Urteil. Siehe die Kommentare in `patterns.js`.
 
-Rules that require reading for meaning, so they live in the skill prose and are
-applied by the model, not the regex engine. Listed so future contributors don't
-mistake their absence for a coverage gap:
+## C. Skill-only (LLM-Urteil — kein Detector-`type`)
 
-- Synonym cycling
-- Copula avoidance
-- Promotional language
-- Structural issues / Excessive structure / Inline-header lists / Numbered list inflation
-- False ranges
-- Notability name-dropping
-- Self-labeling significance
-- When to rewrite from scratch vs. patch
-- Severity tiers (P0 / P1 / P2)
-- Self-reference escape hatch
-- Output format
+Regeln, die Verständnis des Sinns erfordern, leben in der Skill-Prosa und werden vom
+Modell angewandt, nicht von der Regex-Engine. Hier gelistet, damit künftige
+Mitwirkende ihr Fehlen nicht für eine Abdeckungslücke halten:
 
-> **Partial:** the skill's **Context profiles / Tolerance matrix / Auto-detection
-> cues** are partly realized by the engine's `options.contextMode`
-> (`general` / `technical`), which suppresses context-inappropriate flags. Full
-> profile-based tolerance remains an LLM-side judgment.
+- Satzstruktur
+- Passivlastigkeit
+- Synonym-Wechsel
+- Kopula-Vermeidung
+- Werbesprache
+- Prominenz-Namedropping
+- Strukturelle Probleme / Übermässige Struktur / Inline-Header-Listen / Nummerierte-Listen-Aufblähung
+- Falsche Spannweiten
+- Spekulatives Lückenfüllen
+- Infomercial-Engagement-Köder
+- Selbst-Etikettierung von Bedeutung
+- Wann komplett neu schreiben statt flicken
+- Severity-Tiers (P0 / P1 / P2)
+- Self-Reference-Escape-Hatch
+- Output-Format
+
+> **Partiell:** Die **Context-Profile / Toleranzmatrix / Auto-Detection-Cues** des
+> Skills werden teilweise durch `options.contextMode` der Engine (`general` /
+> `technical`) realisiert, das kontext-unpassende Flags unterdrückt. Die volle
+> profilbasierte Toleranz bleibt ein LLM-seitiges Urteil.
